@@ -1,4 +1,3 @@
-# predict.py
 import joblib
 import pandas as pd
 import numpy as np
@@ -6,31 +5,18 @@ import warnings
 warnings.filterwarnings('ignore')
 
 def load_models():
-    """Load trained models"""
     try:
         xgb_model = joblib.load('models/xgboost_model.pkl')
         rf_model = joblib.load('models/random_forest_model.pkl')
         feature_cols = joblib.load('models/feature_columns.pkl')
-        print("✓ Models loaded successfully")
+        print(" Models loaded successfully")
         return xgb_model, rf_model, feature_cols
     except FileNotFoundError as e:
-        print(f"❌ Error: Model files not found!")
+        print(f" Error: Model files not found!")
         print(f"   Please run: python src/train_models.py")
         return None, None, None
 
 def get_team_latest_stats(features_df, team_name, is_home=True):
-    """
-    Get the most recent statistics for a team
-    
-    Args:
-        features_df: DataFrame with all features
-        team_name: Name of the team
-        is_home: Whether team is playing at home
-    
-    Returns:
-        Dictionary of team statistics
-    """
-    # Filter for matches involving this team
     if is_home:
         team_matches = features_df[features_df['HomeTeam'] == team_name]
     else:
@@ -39,35 +25,21 @@ def get_team_latest_stats(features_df, team_name, is_home=True):
     if len(team_matches) == 0:
         raise ValueError(f"Team '{team_name}' not found in data!")
     
-    # Get most recent match
     team_matches = team_matches.sort_values('Date', ascending=False)
     latest = team_matches.iloc[0]
     
     return latest
 
 def predict_match(home_team, away_team, use_ensemble=True):
-    """
-    Predict the outcome of a match
-    
-    Args:
-        home_team: Name of home team
-        away_team: Name of away team
-        use_ensemble: Use weighted ensemble (default: True)
-    
-    Returns:
-        Dictionary with predictions
-    """
-    # Load models
     xgb_model, rf_model, feature_cols = load_models()
     if xgb_model is None:
         return None
     
-    # Load features data
     try:
         features_df = pd.read_csv('data/features.csv')
         features_df['Date'] = pd.to_datetime(features_df['Date'])
     except FileNotFoundError:
-        print("❌ Error: data/features.csv not found!")
+        print(" Error: data/features.csv not found!")
         return None
     
     print(f"\n{'='*60}")
@@ -75,58 +47,46 @@ def predict_match(home_team, away_team, use_ensemble=True):
     print(f"{'='*60}")
     
     try:
-        # Get latest stats for both teams
         home_stats = get_team_latest_stats(features_df, home_team, is_home=True)
         away_stats = get_team_latest_stats(features_df, away_team, is_home=False)
         
-        # Extract features - get all _home and _away features
         match_features = pd.DataFrame(index=[0])
         
         for col in feature_cols:
             if '_home' in col:
-                # This is a home team feature
                 try:
                     match_features[col] = home_stats[col]
                 except KeyError:
                     match_features[col] = 0
             elif '_away' in col:
-                # This is an away team feature
                 try:
                     match_features[col] = away_stats[col]
                 except KeyError:
                     match_features[col] = 0
             else:
-                # This is likely a differential feature
-                # We'll set to 0 for now (ideally calculate from home/away)
                 match_features[col] = 0
         
-        # Ensure all feature columns exist
         for col in feature_cols:
             if col not in match_features.columns:
                 match_features[col] = 0
         
-        # Reorder columns to match training
         match_features = match_features[feature_cols]
         
-        # Make predictions
         xgb_proba = xgb_model.predict_proba(match_features)[0]
         
         if use_ensemble and rf_model is not None:
             rf_proba = rf_model.predict_proba(match_features)[0]
-            # Weighted ensemble (60% XGBoost, 40% Random Forest)
             proba = 0.6 * xgb_proba + 0.4 * rf_proba
             model_used = "Ensemble"
         else:
             proba = xgb_proba
             model_used = "XGBoost"
         
-        # Get prediction
         prediction_idx = np.argmax(proba)
         outcomes = ['Home Win', 'Draw', 'Away Win']
         predicted_outcome = outcomes[prediction_idx]
         confidence = proba[prediction_idx]
         
-        # Display results
         print(f"\nModel: {model_used}")
         print(f"\nPredicted Outcome: {predicted_outcome}")
         print(f"Confidence: {confidence:.1%}")
@@ -135,16 +95,15 @@ def predict_match(home_team, away_team, use_ensemble=True):
         print(f"  Draw:                    {proba[1]:.1%}")
         print(f"  Away Win ({away_team}): {proba[2]:.1%}")
         
-        # Betting recommendation
         print(f"\nBetting Recommendation:")
         if confidence >= 0.65:
-            print(f"  ✓ Strong bet on {predicted_outcome}")
+            print(f" Strong bet on {predicted_outcome}")
         elif confidence >= 0.55:
-            print(f"  ⚠ Moderate bet on {predicted_outcome}")
+            print(f" Moderate bet on {predicted_outcome}")
         elif confidence >= 0.45:
-            print(f"  ⚠ Weak signal - Consider avoiding")
+            print(f" Weak signal - Consider avoiding")
         else:
-            print(f"  ✗ No clear prediction - Avoid betting")
+            print(f" No clear prediction - Avoid betting")
         
         print(f"{'='*60}\n")
         
@@ -162,16 +121,15 @@ def predict_match(home_team, away_team, use_ensemble=True):
         }
         
     except ValueError as e:
-        print(f"❌ Error: {e}")
+        print(f" Error: {e}")
         return None
     except Exception as e:
-        print(f"❌ Unexpected error: {e}")
+        print(f" Unexpected error: {e}")
         import traceback
         traceback.print_exc()
         return None
 
 def show_available_teams():
-    """Show all teams in the dataset"""
     try:
         features_df = pd.read_csv('data/features.csv')
         home_teams = set(features_df['HomeTeam'].unique())
@@ -188,19 +146,10 @@ def show_available_teams():
         
         return all_teams
     except FileNotFoundError:
-        print("❌ Error: data/features.csv not found!")
+        print(" Error: data/features.csv not found!")
         return []
 
 def predict_multiple_matches(matches):
-    """
-    Predict multiple matches at once
-    
-    Args:
-        matches: List of tuples (home_team, away_team)
-    
-    Returns:
-        List of prediction dictionaries
-    """
     results = []
     for home, away in matches:
         result = predict_match(home, away, use_ensemble=True)
@@ -209,12 +158,10 @@ def predict_multiple_matches(matches):
     return results
 
 def main():
-    """Main function"""
     print("\n" + "="*60)
     print(" "*15 + "MATCH PREDICTION SYSTEM")
     print("="*60)
     
-    # Show available teams
     teams = show_available_teams()
     
     if not teams:
@@ -224,21 +171,17 @@ def main():
     print("EXAMPLE PREDICTIONS")
     print("="*60)
     
-    # Example predictions (modify these to teams in your dataset)
     example_matches = [
         ("Arsenal", "Chelsea"),
         ("Liverpool", "Man United"),
         ("Man City", "Tottenham")
     ]
-    
-    print("\nNote: Make sure the team names exactly match those in the dataset!")
-    print("      (Use the list above for reference)\n")
-    
+ 
     for home, away in example_matches:
         try:
             predict_match(home, away, use_ensemble=True)
         except:
-            print(f"⚠ Could not predict {home} vs {away} - team names may not exist\n")
+            print(f" Could not predict {home} vs {away} - team names may not exist\n")
     
     print("\n" + "="*60)
     print("CUSTOM PREDICTIONS")

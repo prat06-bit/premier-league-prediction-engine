@@ -11,18 +11,12 @@ import os
 import re
 from datetime import datetime
 
-# Set style for better plots
 sns.set_style("whitegrid")
 plt.rcParams['figure.figsize'] = (12, 8)
 
 def sanitize_feature_names(feature_cols):
-    """
-    Sanitize feature names to remove special characters that XGBoost doesn't like.
-    XGBoost doesn't allow [, ], or < in feature names.
-    """
     sanitized = []
     for col in feature_cols:
-        # Replace problematic characters
         clean_name = col.replace('[', '_').replace(']', '_').replace('<', '_lt_').replace('>', '_gt_')
         sanitized.append(clean_name)
     return sanitized
@@ -40,20 +34,14 @@ def load_and_split_data(filepath: str, test_size: float = 0.2):
     print(f"✓ Loaded {len(df)} matches")
     print(f"  Date range: {df['Date'].min().date()} to {df['Date'].max().date()}")
     
-    # CRITICAL: Define ALL columns to exclude
     exclude_cols = [
-        # Match metadata
         'Date', 'HomeTeam', 'AwayTeam', 'FTHG', 'FTAG', 'FTR',
-        # Calculated outcomes (targets, not features)
         'home_win', 'away_win', 'draw', 'home_points', 'away_points', 'target',
-        # Original data columns
         'Div', 'Season', 'Time', 'Referee', 'HTR', 'HTHG', 'HTAG',
-        # Merged columns
         'Date_home', 'Date_away', 'Team_home', 'Team_away', 
         'Opponent_home', 'Opponent_away'
     ]
     
-    # Get ALL numeric columns
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
     feature_cols = [col for col in numeric_cols if col not in exclude_cols]
     
@@ -61,34 +49,27 @@ def load_and_split_data(filepath: str, test_size: float = 0.2):
     print(f"  Numeric columns: {len(numeric_cols)}")
     print(f"  Feature columns: {len(feature_cols)}")
     
-    # Sanitize feature names for XGBoost
     original_feature_cols = feature_cols.copy()
     feature_cols_clean = sanitize_feature_names(feature_cols)
     
-    # Create mapping
     feature_name_mapping = dict(zip(original_feature_cols, feature_cols_clean))
     
-    # Rename columns in dataframe
     df = df.rename(columns=feature_name_mapping)
     feature_cols = feature_cols_clean
     
     print(f"  Sanitized feature names for XGBoost compatibility")
     
-    # Verify FTR exists
     if 'FTR' not in df.columns:
         raise ValueError("FTR column not found!")
     
-    # Create target
     target_map = {'H': 0, 'D': 1, 'A': 2}
     df['target'] = df['FTR'].map(target_map)
     
-    # Remove invalid targets
     if df['target'].isna().any():
         print(f"\n⚠ Warning: {df['target'].isna().sum()} invalid FTR values found")
         df = df.dropna(subset=['target'])
         print(f"  New size: {len(df)}")
     
-    # Time-based split
     split_idx = int(len(df) * (1 - test_size))
     
     train_df = df.iloc[:split_idx].copy()
@@ -99,9 +80,9 @@ def load_and_split_data(filepath: str, test_size: float = 0.2):
     X_test = test_df[feature_cols].fillna(0)
     y_test = test_df['target'].astype(int)
     
-    print(f"\n✓ Train set: {len(train_df)} matches")
+    print(f"\n Train set: {len(train_df)} matches")
     print(f"  Period: {train_df['Date'].min().date()} to {train_df['Date'].max().date()}")
-    print(f"\n✓ Test set: {len(test_df)} matches")
+    print(f"\n Test set: {len(test_df)} matches")
     print(f"  Period: {test_df['Date'].min().date()} to {test_df['Date'].max().date()}")
     
     print(f"\nClass distribution:")
@@ -110,17 +91,15 @@ def load_and_split_data(filepath: str, test_size: float = 0.2):
     print(f"  Draw:     {dist[1]:.1%}")
     print(f"  Away Win: {dist[2]:.1%}")
     
-    # Final verification
     non_numeric = X_train.select_dtypes(exclude=[np.number]).columns
     if len(non_numeric) > 0:
         raise ValueError(f"Non-numeric columns found: {list(non_numeric)}")
     
-    print(f"\n✓ All features are numeric and ready for training")
+    print(f"\n All features are numeric and ready for training")
     
     return X_train, X_test, y_train, y_test, feature_cols, test_df
 
 def train_xgboost(X_train, y_train, X_test, y_test):
-    """Train XGBoost classifier"""
     print("\n" + "="*80)
     print("STEP 2: TRAINING XGBOOST MODEL")
     print("="*80)
@@ -147,7 +126,6 @@ def train_xgboost(X_train, y_train, X_test, y_test):
     eval_set = [(X_train, y_train), (X_test, y_test)]
     model.fit(X_train, y_train, eval_set=eval_set, verbose=False)
     
-    # Evaluate
     train_preds = model.predict(X_train)
     test_preds = model.predict(X_test)
     train_proba = model.predict_proba(X_train)
@@ -156,12 +134,12 @@ def train_xgboost(X_train, y_train, X_test, y_test):
     train_acc = accuracy_score(y_train, train_preds)
     test_acc = accuracy_score(y_test, test_preds)
     
-    print(f"\n✓ Training complete!")
+    print(f"\n Training complete!")
     print(f"  Train Accuracy: {train_acc:.4f} ({train_acc*100:.2f}%)")
     print(f"  Test Accuracy:  {test_acc:.4f} ({test_acc*100:.2f}%)")
     
     if train_acc - test_acc > 0.05:
-        print(f"  ⚠ Overfitting gap: {(train_acc-test_acc)*100:.2f}%")
+        print(f"Overfitting gap: {(train_acc-test_acc)*100:.2f}%")
     
     return model, test_preds, test_proba, test_acc
 
@@ -185,7 +163,6 @@ def train_random_forest(X_train, y_train, X_test, y_test):
     model = RandomForestClassifier(**params)
     model.fit(X_train, y_train)
     
-    # Evaluate
     train_preds = model.predict(X_train)
     test_preds = model.predict(X_test)
     train_proba = model.predict_proba(X_train)
@@ -194,7 +171,7 @@ def train_random_forest(X_train, y_train, X_test, y_test):
     train_acc = accuracy_score(y_train, train_preds)
     test_acc = accuracy_score(y_test, test_preds)
     
-    print(f"\n✓ Training complete!")
+    print(f"\nTraining complete!")
     print(f"  Train Accuracy: {train_acc:.4f} ({train_acc*100:.2f}%)")
     print(f"  Test Accuracy:  {test_acc:.4f} ({test_acc*100:.2f}%)")
     
@@ -204,7 +181,6 @@ def train_random_forest(X_train, y_train, X_test, y_test):
     return model, test_preds, test_proba, test_acc
 
 def create_ensemble(xgb_proba, rf_proba, y_test, weights=[0.6, 0.4]):
-    """Weighted ensemble"""
     print("\n" + "="*80)
     print("STEP 4: CREATING ENSEMBLE MODEL")
     print("="*80)
@@ -214,12 +190,11 @@ def create_ensemble(xgb_proba, rf_proba, y_test, weights=[0.6, 0.4]):
     
     accuracy = accuracy_score(y_test, ensemble_pred)
     
-    print(f"\n✓ Ensemble Accuracy: {accuracy:.4f} ({accuracy*100:.2f}%)")
+    print(f"\nEnsemble Accuracy: {accuracy:.4f} ({accuracy*100:.2f}%)")
     
     return ensemble_pred, ensemble_proba, accuracy
 
 def print_detailed_metrics(y_test, y_pred, model_name):
-    """Print classification metrics"""
     print(f"\n{model_name} - Detailed Metrics:")
     print("-" * 80)
     
@@ -238,7 +213,6 @@ def print_detailed_metrics(y_test, y_pred, model_name):
         print(f"    Support:   {int(report[outcome]['support'])}")
 
 def plot_confusion_matrix(y_test, y_pred, title, save_path):
-    """Plot confusion matrix"""
     cm = confusion_matrix(y_test, y_pred)
     cm_percent = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis] * 100
     
@@ -287,7 +261,6 @@ def plot_feature_importance(model, feature_cols, model_name, top_n=20):
         print(f"  {i:2d}. {feature_cols[idx]:35s} {importances[idx]:.4f}")
 
 def analyze_betting(test_df, predictions, probabilities, model_name):
-    """Analyze betting performance"""
     print(f"\n{'='*80}")
     print(f"BETTING ANALYSIS - {model_name}")
     print("="*80)
@@ -314,7 +287,6 @@ def analyze_betting(test_df, predictions, probabilities, model_name):
             print(f"  Accuracy: {acc:.1%} ({correct}/{total})")
 
 def compare_models(xgb_acc, rf_acc, ens_acc):
-    """Compare model performance"""
     print("\n" + "="*80)
     print("MODEL COMPARISON")
     print("="*80)
@@ -329,7 +301,6 @@ def compare_models(xgb_acc, rf_acc, ens_acc):
         print(f"  {model:15s}: {acc*100:.2f}%{marker}")
 
 def save_models(xgb_model, rf_model, feature_cols):
-    """Save models"""
     os.makedirs('models', exist_ok=True)
     
     joblib.dump(xgb_model, 'models/xgboost_model.pkl')
@@ -342,24 +313,21 @@ def save_models(xgb_model, rf_model, feature_cols):
     }
     joblib.dump(metadata, 'models/metadata.pkl')
     
-    print("\n✓ Models saved to models/")
+    print("\n Models saved to models/")
 
 def main():
-    """Main pipeline"""
     print("\n" + "="*80)
     print(" "*20 + "FOOTBALL PREDICTION MODEL")
     print("="*80)
     
     if not os.path.exists('data/features.csv'):
-        print("\n❌ Error: data/features.csv not found!")
+        print("\n Error: data/features.csv not found!")
         print("   Run: python src/feature_engineering.py")
         return
     
-    # Load and split
     X_train, X_test, y_train, y_test, feature_cols, test_df = \
         load_and_split_data('data/features.csv', test_size=0.2)
     
-    # Train models
     xgb_model, xgb_pred, xgb_proba, xgb_acc = \
         train_xgboost(X_train, y_train, X_test, y_test)
     print_detailed_metrics(y_test, xgb_pred, 'XGBoost')
@@ -372,10 +340,8 @@ def main():
         create_ensemble(xgb_proba, rf_proba, y_test)
     print_detailed_metrics(y_test, ens_pred, 'Ensemble')
     
-    # Compare
     compare_models(xgb_acc, rf_acc, ens_acc)
     
-    # Visualizations
     print("\n" + "="*80)
     print("CREATING VISUALIZATIONS")
     print("="*80)
@@ -385,20 +351,17 @@ def main():
     plot_confusion_matrix(y_test, xgb_pred, 'XGBoost', 'models/xgb_cm.png')
     plot_confusion_matrix(y_test, rf_pred, 'Random Forest', 'models/rf_cm.png')
     plot_confusion_matrix(y_test, ens_pred, 'Ensemble', 'models/ens_cm.png')
-    print("✓ Confusion matrices saved")
+    print(" Confusion matrices saved")
     
     plot_feature_importance(xgb_model, feature_cols, 'XGBoost', top_n=20)
     plot_feature_importance(rf_model, feature_cols, 'Random Forest', top_n=20)
-    print("✓ Feature importance saved")
+    print(" Feature importance saved")
     
-    # Betting analysis
     analyze_betting(test_df, xgb_pred, xgb_proba, 'XGBoost')
     analyze_betting(test_df, ens_pred, ens_proba, 'Ensemble')
     
-    # Save
     save_models(xgb_model, rf_model, feature_cols)
     
-    # Summary
     print("\n" + "="*80)
     print("TRAINING COMPLETE!")
     print("="*80)
@@ -407,19 +370,12 @@ def main():
     print(f"  Random Forest: {rf_acc*100:.2f}%")
     print(f"  Ensemble:      {ens_acc*100:.2f}%")
     
-    print("\n📊 INTERPRETATION:")
-    print("  50-52% = Baseline (random)")
-    print("  52-54% = Decent")
-    print("  54-56% = Good")
-    print("  56-58% = Very Good")
-    print("  58%+   = Excellent")
-    
     if ens_acc < 0.52:
-        print("\n⚠ Results close to random - consider more data/features")
+        print("\n Results close to random - consider more data/features")
     elif ens_acc > 0.56:
-        print("\n🎯 Excellent results! Consider real betting backtests")
+        print("\n Excellent results! Consider real betting backtests")
     else:
-        print("\n✓ Good results! Model shows predictive power")
+        print("\n Good results! Model shows predictive power")
     
     print("\n" + "="*80 + "\n")
 

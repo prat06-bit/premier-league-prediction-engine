@@ -31,7 +31,7 @@ data["Date"] = pd.to_datetime(
     errors="coerce",
     format="mixed"
 )
-
+    
 data = data.sort_values("Date").reset_index(drop=True)
 
 data.to_csv(DATA_DIR / "merged_matches.csv", index=False)

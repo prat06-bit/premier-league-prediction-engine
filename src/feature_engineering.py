@@ -3,7 +3,6 @@ import numpy as np
 from typing import List
 
 def load_and_prepare_data(filepath: str) -> pd.DataFrame:
-    """Load and prepare the raw match data."""
     df = pd.read_csv(filepath)
     df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
     df = df.sort_values("Date").reset_index(drop=True)
@@ -11,7 +10,6 @@ def load_and_prepare_data(filepath: str) -> pd.DataFrame:
     return df
 
 def create_match_outcomes(df: pd.DataFrame) -> pd.DataFrame:
-    """Create binary outcome columns and points."""
     df = df.copy()
     df["home_win"] = (df["FTR"] == "H").astype(int)
     df["away_win"] = (df["FTR"] == "A").astype(int)
@@ -21,7 +19,6 @@ def create_match_outcomes(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 def create_team_perspective_df(df: pd.DataFrame) -> pd.DataFrame:
-    """Convert match data to team perspective (one row per team per match)."""
     home = df[["Date", "HomeTeam", "AwayTeam", "FTHG", "FTAG", 
                 "home_points", "home_win"]].copy()
     home.columns = ["Date", "Team", "Opponent", "GoalsFor", "GoalsAgainst", 
@@ -38,53 +35,44 @@ def create_team_perspective_df(df: pd.DataFrame) -> pd.DataFrame:
     return team_df
 
 def create_rolling_features(team_df: pd.DataFrame, windows: List[int] = [3, 5, 10]) -> pd.DataFrame:
-    """Create rolling window features for multiple time windows."""
     team_df = team_df.copy()
     
     for window in windows:
-        # Basic rolling averages
         for col in ["GoalsFor", "GoalsAgainst", "Points"]:
             team_df[f"{col}_avg_{window}"] = (
                 team_df.groupby("Team")[col]
                 .transform(lambda x: x.shift(1).rolling(window, min_periods=1).mean())
             )
         
-        # Goal difference
         team_df[f"goal_diff_avg_{window}"] = (
             team_df[f"GoalsFor_avg_{window}"] - team_df[f"GoalsAgainst_avg_{window}"]
         )
         
-        # Win ratio
         team_df[f"win_ratio_{window}"] = (
             team_df.groupby("Team")["Win"]
             .transform(lambda x: x.shift(1).rolling(window, min_periods=1).mean())
         )
         
-        # Draw ratio
         team_df[f"draw_ratio_{window}"] = (
             team_df.groupby("Team")["Points"]
             .transform(lambda x: ((x.shift(1) == 1).rolling(window, min_periods=1).mean()))
         )
         
-        # Clean sheet ratio
         team_df[f"clean_sheet_ratio_{window}"] = (
             team_df.groupby("Team")["GoalsAgainst"]
             .transform(lambda x: (x.shift(1) == 0).rolling(window, min_periods=1).mean())
         )
         
-        # Failed to score ratio
         team_df[f"failed_to_score_ratio_{window}"] = (
             team_df.groupby("Team")["GoalsFor"]
             .transform(lambda x: (x.shift(1) == 0).rolling(window, min_periods=1).mean())
         )
         
-        # Standard deviation
         team_df[f"points_std_{window}"] = (
             team_df.groupby("Team")["Points"]
             .transform(lambda x: x.shift(1).rolling(window, min_periods=2).std().fillna(0))
         )
         
-        # Max goals scored/conceded
         team_df[f"max_goals_scored_{window}"] = (
             team_df.groupby("Team")["GoalsFor"]
             .transform(lambda x: x.shift(1).rolling(window, min_periods=1).max())
@@ -95,7 +83,6 @@ def create_rolling_features(team_df: pd.DataFrame, windows: List[int] = [3, 5, 1
             .transform(lambda x: x.shift(1).rolling(window, min_periods=1).max())
         )
     
-    # Exponentially weighted moving average
     team_df["points_ewm_5"] = (
         team_df.groupby("Team")["Points"]
         .transform(lambda x: x.shift(1).ewm(span=5, min_periods=1).mean())
@@ -111,19 +98,16 @@ def create_rolling_features(team_df: pd.DataFrame, windows: List[int] = [3, 5, 1
         .transform(lambda x: x.shift(1).ewm(span=5, min_periods=1).mean())
     )
     
-    # Win streak
     team_df["win_streak"] = (
         team_df.groupby("Team")["Win"]
         .transform(lambda x: calculate_streak_fixed(x.shift(1)))
     )
     
-    # Unbeaten streak
     team_df["unbeaten_streak"] = (
         team_df.groupby("Team")["Points"]
         .transform(lambda x: calculate_unbeaten_streak(x.shift(1)))
     )
     
-    # Days since last match
     team_df["days_rest"] = (
         team_df.groupby("Team")["Date"]
         .diff()
@@ -131,14 +115,12 @@ def create_rolling_features(team_df: pd.DataFrame, windows: List[int] = [3, 5, 1
         .fillna(7)
     )
     
-    # Points sum
     for window in [3, 5, 10]:
         team_df[f"points_sum_{window}"] = (
             team_df.groupby("Team")["Points"]
             .transform(lambda x: x.shift(1).rolling(window, min_periods=1).sum())
         )
     
-    # Goal trends
     team_df["goals_for_trend_5"] = (
         team_df.groupby("Team")["GoalsFor"]
         .transform(lambda x: x.shift(1).rolling(5, min_periods=3).mean() - 
@@ -156,7 +138,6 @@ def create_rolling_features(team_df: pd.DataFrame, windows: List[int] = [3, 5, 1
     return team_df
 
 def calculate_streak_fixed(wins: pd.Series) -> pd.Series:
-    """Calculate current win streak."""
     streak = []
     current_streak = 0
     
@@ -172,7 +153,6 @@ def calculate_streak_fixed(wins: pd.Series) -> pd.Series:
     return pd.Series(streak, index=wins.index)
 
 def calculate_unbeaten_streak(points: pd.Series) -> pd.Series:
-    """Calculate current unbeaten streak."""
     streak = []
     current_streak = 0
     
@@ -188,7 +168,6 @@ def calculate_unbeaten_streak(points: pd.Series) -> pd.Series:
     return pd.Series(streak, index=points.index)
 
 def create_head_to_head_features(team_df: pd.DataFrame) -> pd.DataFrame:
-    """Create head-to-head features."""
     team_df = team_df.copy()
     
     team_df["h2h_win_pct_3"] = (
@@ -215,18 +194,15 @@ def create_head_to_head_features(team_df: pd.DataFrame) -> pd.DataFrame:
     return team_df
 
 def merge_features(df: pd.DataFrame, team_df: pd.DataFrame) -> pd.DataFrame:
-    """Merge team features back to match level."""
     home_feats = team_df[team_df["is_home"] == 1].copy()
     away_feats = team_df[team_df["is_home"] == 0].copy()
     
-    # CRITICAL: Only select NUMERIC feature columns (exclude Date, Team, Opponent, etc.)
     exclude_cols = ["Date", "Team", "Opponent", "GoalsFor", "GoalsAgainst", 
                     "Points", "Win", "is_home"]
     feature_cols = [col for col in team_df.columns if col not in exclude_cols]
     
     print(f"Merging {len(feature_cols)} feature columns...")
     
-    # Merge home features
     features = df.merge(
         home_feats[["Date", "Team"] + feature_cols],
         left_on=["Date", "HomeTeam"],
@@ -234,7 +210,6 @@ def merge_features(df: pd.DataFrame, team_df: pd.DataFrame) -> pd.DataFrame:
         how="left"
     )
     
-    # Merge away features
     features = features.merge(
         away_feats[["Date", "Team"] + feature_cols],
         left_on=["Date", "AwayTeam"],
@@ -243,13 +218,10 @@ def merge_features(df: pd.DataFrame, team_df: pd.DataFrame) -> pd.DataFrame:
         suffixes=("_home", "_away")
     )
     
-    # Drop the Team columns created by merge
     features = features.drop(columns=["Team_home", "Team_away"], errors="ignore")
-    
     return features
 
 def create_differential_features(features: pd.DataFrame) -> pd.DataFrame:
-    """Create differential features."""
     features = features.copy()
     
     for window in [3, 5, 10]:
@@ -312,74 +284,60 @@ def create_differential_features(features: pd.DataFrame) -> pd.DataFrame:
     return features
 
 def main():
-    """Main execution function."""
     print("\n" + "="*60)
     print("FEATURE ENGINEERING PIPELINE")
     print("="*60)
     
-    # Load data
-    print("\n[1/7] Loading data...")
+    print("\n Loading data")
     df = load_and_prepare_data("data/merged_matches.csv")
-    print(f"  ✓ Loaded {len(df)} matches")
+    print(f" Loaded {len(df)} matches")
     
-    # Create match outcomes
-    print("[2/7] Creating match outcomes...")
+    print("Creating match outcomes")
     df = create_match_outcomes(df)
     
-    # Convert to team perspective
-    print("[3/7] Converting to team perspective...")
+    print("Converting to team perspective")
     team_df = create_team_perspective_df(df)
-    print(f"  ✓ Created {len(team_df)} team-match records")
+    print(f"Created {len(team_df)} team-match records")
     
-    # Create rolling features
-    print("[4/7] Creating rolling features...")
+    print("Creating rolling features")
     team_df = create_rolling_features(team_df, windows=[3, 5, 10])
     
-    # Create head-to-head features
-    print("[5/7] Creating head-to-head features...")
+    print(" Creating head-to-head features")
     team_df = create_head_to_head_features(team_df)
     
-    # Merge back to match level
-    print("[6/7] Merging features to match level...")
+    print(" Merging features to match level")
     features = merge_features(df, team_df)
     
-    # Create differential features
-    print("[7/7] Creating differential features...")
+    print("Creating differential features")
     features = create_differential_features(features)
     
-    # Data quality check
     print("\n" + "="*60)
-    print("DATA QUALITY CHECK")
     print("="*60)
     print(f"Rows before cleaning: {len(features)}")
     print(f"Rows with any NaN: {features.isna().any(axis=1).sum()}")
     
-    # Clean up
     nan_threshold = 0.3
     nan_count = features.isna().sum(axis=1)
     features_clean = features[nan_count < (len(features.columns) * nan_threshold)].copy()
     
     print(f"Rows after cleaning: {len(features_clean)}")
     
-    # Fill remaining NaN with 0
     features_clean = features_clean.fillna(0)
     
-    # Save
     features_clean.to_csv("data/features.csv", index=False)
     
     print("\n" + "="*60)
     print("RESULTS")
     print("="*60)
-    print(f"✓ Feature dataset created: {features_clean.shape}")
+    print(f" Feature dataset created: {features_clean.shape}")
     
-    # Count feature columns (exclude metadata)
     metadata_cols = ['Date', 'HomeTeam', 'AwayTeam', 'FTHG', 'FTAG', 'FTR', 
                      'home_win', 'away_win', 'draw', 'home_points', 'away_points']
     feature_cols = [c for c in features_clean.columns if c not in metadata_cols]
     
-    print(f"✓ Number of feature columns: {len(feature_cols)}")
-    print(f"✓ Date range: {features_clean['Date'].min()} to {features_clean['Date'].max()}")
-    print(f"✓ Saved to: data/features.csv")
+    print(f" Number of feature columns: {len(feature_cols)}")
+    print(f" Date range: {features_clean['Date'].min()} to {features_clean['Date'].max()}")
+    print(f" Saved to: data/features.csv")
     print("="*60 + "\n")
 
 if __name__ == "__main__":
