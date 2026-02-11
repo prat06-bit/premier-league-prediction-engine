@@ -3,502 +3,1328 @@ import pandas as pd
 import numpy as np
 import joblib
 import plotly.graph_objects as go
-import plotly.express as px
-from datetime import datetime
 import os
+from datetime import datetime
 
-# Page config
-st.set_page_config(
-    page_title="Premier League Predictor",
-    page_icon="⚽",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+st.set_page_config(page_title="KICKIQ · EPL Predictor", page_icon="⚡", layout="wide", initial_sidebar_state="collapsed")
 
-# Custom CSS
 st.markdown("""
 <style>
-    .main-header {
-        font-size: 3rem;
-        font-weight: bold;
-        text-align: center;
-        color: #37003c;
-        margin-bottom: 0.5rem;
-    }
-    .sub-header {
-        font-size: 1.2rem;
-        text-align: center;
-        color: #00ff85;
-        margin-bottom: 2rem;
-    }
-    .prediction-box {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 2rem;
-        border-radius: 15px;
-        color: white;
-        text-align: center;
-        margin: 1rem 0;
-    }
-    .metric-card {
-        background-color: #f0f2f6;
-        padding: 1.5rem;
-        border-radius: 10px;
-        text-align: center;
-        margin: 0.5rem;
-    }
-    .stButton>button {
-        width: 100%;
-        background-color: #37003c;
-        color: white;
-        border-radius: 10px;
-        padding: 0.75rem;
-        font-size: 1.1rem;
-        font-weight: bold;
-    }
-    .stButton>button:hover {
-        background-color: #00ff85;
-        color: #37003c;
-    }
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=DM+Mono:wght@300;400;500&family=Clash+Display:wght@400;500;600;700&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700;800;900&family=Saira+Condensed:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --acid: #C8FF00;
+  --acid-dim: rgba(200,255,0,0.15);
+  --acid-glow: rgba(200,255,0,0.35);
+  --void: #050608;
+  --surface: #0A0C0F;
+  --surface2: #0F1115;
+  --border: rgba(255,255,255,0.06);
+  --border-bright: rgba(200,255,0,0.25);
+  --text: #F4F4F5;
+  --muted: rgba(244,244,245,0.4);
+  --faint: rgba(244,244,245,0.12);
+  --red: #FF3A3A;
+  --amber: #FFB800;
+  --cyan: #00E5FF;
+}
+
+html, body, .stApp { background: var(--void) !important; color: var(--text); font-family: 'Rajdhani', sans-serif; overflow-x: hidden; }
+#MainMenu, footer, header { visibility: hidden; }
+.stDeployButton { display: none; }
+.block-container { padding: 0 !important; max-width: 100% !important; }
+
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: var(--void); }
+::-webkit-scrollbar-thumb { background: var(--acid); border-radius: 2px; }
+
+/* ──── NOISE LAYER ──── */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+  mix-blend-mode: overlay;
+}
+
+/* ──── SCANLINES ──── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.03) 2px,
+    rgba(0,0,0,0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 9998;
+}
+
+/* ──── ANIMATED BG ORBS ──── */
+.orb-container { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  animation: orbFloat var(--dur, 20s) ease-in-out infinite;
+}
+.orb-1 { width: 700px; height: 700px; top: -20%; left: -15%; background: radial-gradient(circle, rgba(200,255,0,0.09) 0%, transparent 70%); --dur: 18s; }
+.orb-2 { width: 500px; height: 500px; bottom: -15%; right: -10%; background: radial-gradient(circle, rgba(0,229,255,0.07) 0%, transparent 70%); --dur: 23s; animation-delay: -7s; animation-direction: reverse; }
+.orb-3 { width: 400px; height: 400px; top: 40%; left: 50%; background: radial-gradient(circle, rgba(200,255,0,0.04) 0%, transparent 70%); --dur: 30s; animation-delay: -12s; }
+
+@keyframes orbFloat {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(30px, -40px) scale(1.05); }
+  50% { transform: translate(-20px, 30px) scale(0.95); }
+  75% { transform: translate(40px, 20px) scale(1.03); }
+}
+
+/* ──── GRID ──── */
+.bg-grid {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(200,255,0,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(200,255,0,0.025) 1px, transparent 1px);
+  background-size: 80px 80px;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+}
+
+/* ──── HERO ──── */
+.landing-wrap {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5rem 2rem 4rem;
+  position: relative;
+  z-index: 1;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, rgba(200,255,0,0.08), rgba(200,255,0,0.03));
+  border: 1px solid rgba(200,255,0,0.2);
+  border-radius: 100px;
+  padding: 7px 18px 7px 12px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  color: var(--acid);
+  text-transform: uppercase;
+  margin-bottom: 2.5rem;
+  animation: slideDown 0.7s cubic-bezier(0.16,1,0.3,1) both;
+}
+.eyebrow-pulse {
+  width: 7px; height: 7px;
+  background: var(--acid);
+  border-radius: 50%;
+  animation: pulse 1.8s ease-in-out infinite;
+  box-shadow: 0 0 8px var(--acid);
+}
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.3;transform:scale(0.7);} }
+
+.hero-wordmark {
+  font-family: 'Anton', sans-serif;
+  font-size: clamp(7rem, 18vw, 15rem);
+  line-height: 0.85;
+  letter-spacing: -0.02em;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+  animation: heroReveal 0.9s cubic-bezier(0.16,1,0.3,1) 0.1s both;
+}
+.wm-kick {
+  color: var(--text);
+  display: inline;
+  position: relative;
+}
+.wm-iq {
+  color: var(--acid);
+  display: inline;
+  text-shadow: 0 0 60px rgba(200,255,0,0.5), 0 0 120px rgba(200,255,0,0.2);
+  animation: acidFlicker 6s ease-in-out infinite 2s;
+}
+@keyframes acidFlicker {
+  0%,90%,100% { text-shadow: 0 0 60px rgba(200,255,0,0.5), 0 0 120px rgba(200,255,0,0.2); }
+  92% { text-shadow: 0 0 10px rgba(200,255,0,0.2); opacity: 0.9; }
+  94% { text-shadow: 0 0 60px rgba(200,255,0,0.5), 0 0 120px rgba(200,255,0,0.2); }
+  96% { text-shadow: 0 0 10px rgba(200,255,0,0.2); opacity: 0.85; }
+  98% { text-shadow: 0 0 80px rgba(200,255,0,0.6), 0 0 140px rgba(200,255,0,0.25); }
+}
+
+.hero-tagline {
+  font-family: 'Saira Condensed', sans-serif;
+  font-weight: 300;
+  font-size: clamp(0.95rem, 2vw, 1.2rem);
+  letter-spacing: 0.38em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: center;
+  margin: 1.5rem 0 0;
+  animation: heroReveal 0.9s cubic-bezier(0.16,1,0.3,1) 0.3s both;
+}
+
+.hero-desc {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 400;
+  font-size: clamp(1rem, 1.8vw, 1.15rem);
+  color: rgba(244,244,245,0.5);
+  text-align: center;
+  max-width: 480px;
+  line-height: 1.7;
+  margin: 1.8rem auto 0;
+  animation: heroReveal 0.9s cubic-bezier(0.16,1,0.3,1) 0.4s both;
+}
+
+@keyframes heroReveal {
+  from { opacity: 0; transform: translateY(24px) skewY(1deg); }
+  to { opacity: 1; transform: translateY(0) skewY(0); }
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ──── POWER METRICS ──── */
+.metrics-strip {
+  display: flex;
+  gap: 0;
+  align-items: stretch;
+  margin: 4.5rem 0 3.5rem;
+  position: relative;
+  z-index: 1;
+  animation: heroReveal 0.9s cubic-bezier(0.16,1,0.3,1) 0.5s both;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--surface);
+}
+.metric-block {
+  flex: 1;
+  padding: 2rem 2.5rem;
+  position: relative;
+  border-right: 1px solid var(--border);
+  transition: background 0.3s;
+}
+.metric-block:last-child { border-right: none; }
+.metric-block:hover { background: rgba(200,255,0,0.03); }
+.metric-block::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--acid), transparent);
+  transform: scaleX(0);
+  transition: transform 0.4s ease;
+}
+.metric-block:hover::after { transform: scaleX(1); }
+.metric-val {
+  font-family: 'Anton', sans-serif;
+  font-size: 3.2rem;
+  line-height: 1;
+  color: var(--acid);
+  letter-spacing: -0.01em;
+}
+.metric-lbl {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-top: 6px;
+}
+
+/* ──── CTA BUTTON ──── */
+.cta-section {
+  position: relative;
+  z-index: 1;
+  animation: heroReveal 0.9s cubic-bezier(0.16,1,0.3,1) 0.65s both;
+}
+.stButton > button {
+  background: var(--acid) !important;
+  color: #050608 !important;
+  border: none !important;
+  border-radius: 10px !important;
+  font-family: 'Anton', sans-serif !important;
+  font-size: 1.35rem !important;
+  letter-spacing: 0.12em !important;
+  padding: 1.1rem 2.5rem !important;
+  width: 100% !important;
+  transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1) !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+.stButton > button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.stButton > button:hover {
+  transform: translateY(-3px) scale(1.01) !important;
+  box-shadow: 0 0 40px rgba(200,255,0,0.5), 0 8px 32px rgba(200,255,0,0.2) !important;
+}
+.stButton > button:active { transform: translateY(0) scale(0.99) !important; }
+
+/* ──── VS COMPARE SECTION ──── */
+.vs-section {
+  width: 100%;
+  max-width: 860px;
+  margin: 5rem auto 0;
+  position: relative;
+  z-index: 1;
+  animation: heroReveal 0.9s cubic-bezier(0.16,1,0.3,1) 0.8s both;
+}
+.vs-heading {
+  font-family: 'Saira Condensed', sans-serif;
+  font-weight: 200;
+  font-size: 0.75rem;
+  letter-spacing: 0.35em;
+  color: var(--muted);
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+.compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 40px 1fr;
+  gap: 1px;
+  background: var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.compare-col {
+  background: var(--surface);
+  padding: 1.8rem;
+}
+.compare-col.ours {
+  background: linear-gradient(135deg, rgba(200,255,0,0.06), rgba(200,255,0,0.02));
+  border-left: 2px solid rgba(200,255,0,0.3);
+}
+.compare-col-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-bottom: 1.4rem;
+  color: var(--muted);
+}
+.compare-col.ours .compare-col-label { color: var(--acid); }
+.compare-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: rgba(244,244,245,0.65);
+}
+.compare-row:last-child { border-bottom: none; }
+.compare-col.ours .compare-row { color: rgba(244,244,245,0.8); }
+.c-check { color: var(--acid); font-size: 0.85rem; }
+.c-cross { color: rgba(244,244,245,0.2); font-size: 0.85rem; }
+.compare-divider {
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.vs-pill {
+  font-family: 'Anton', sans-serif;
+  font-size: 1.1rem;
+  color: var(--border);
+  writing-mode: vertical-rl;
+  letter-spacing: 0.4em;
+}
+
+/* ──── FOOTER ──── */
+.landing-footer {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  color: rgba(244,244,245,0.18);
+  text-align: center;
+  text-transform: uppercase;
+  margin-top: 4rem;
+  padding-bottom: 3rem;
+  line-height: 2;
+  position: relative;
+  z-index: 1;
+}
+
+/* ──── PREDICT PAGE ──── */
+.pred-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.6rem 3rem;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  z-index: 1;
+  background: rgba(5,6,8,0.8);
+  backdrop-filter: blur(20px);
+  position: sticky;
+  top: 0;
+}
+.pred-logo-text {
+  font-family: 'Anton', sans-serif;
+  font-size: 1.8rem;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  line-height: 1;
+}
+.pred-logo-text .iq { color: var(--acid); }
+.pred-subtitle {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+.live-dot {
+  width: 6px; height: 6px;
+  background: var(--acid);
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 8px var(--acid);
+  animation: pulse 1.5s ease-in-out infinite;
+  margin-right: 6px;
+}
+
+/* ──── SELECTOR SECTION ──── */
+.selector-zone {
+  padding: 3.5rem 3rem 1.5rem;
+  position: relative;
+  z-index: 1;
+}
+.section-kicker {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.25em;
+  color: var(--acid);
+  text-transform: uppercase;
+  margin-bottom: 0.6rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-kicker::before {
+  content: '';
+  width: 24px; height: 1px;
+  background: var(--acid);
+}
+.section-title {
+  font-family: 'Anton', sans-serif;
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  letter-spacing: 0.01em;
+  line-height: 1;
+  margin-bottom: 2.5rem;
+  color: var(--text);
+}
+
+/* ──── STREAMLIT OVERRIDES ──── */
+.stSelectbox > div > div {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 10px !important;
+  color: var(--text) !important;
+  font-family: 'Rajdhani', sans-serif !important;
+  font-size: 1.1rem !important;
+  font-weight: 600 !important;
+  transition: border-color 0.2s !important;
+}
+.stSelectbox > div > div:hover {
+  border-color: rgba(200,255,0,0.4) !important;
+  background: rgba(200,255,0,0.02) !important;
+}
+.stSelectbox label {
+  font-family: 'DM Mono', monospace !important;
+  font-size: 0.65rem !important;
+  letter-spacing: 0.15em !important;
+  text-transform: uppercase !important;
+  color: var(--muted) !important;
+}
+
+/* ──── RESULT CARD ──── */
+.result-hero {
+  background: linear-gradient(135deg, rgba(200,255,0,0.07), rgba(200,255,0,0.02));
+  border: 1px solid rgba(200,255,0,0.2);
+  border-radius: 20px;
+  padding: 3rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  margin: 1.5rem 0;
+}
+.result-hero::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%; right: -100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--acid), transparent);
+  animation: scanline 3s linear infinite;
+}
+@keyframes scanline { from{left:-100%;} to{left:100%;} }
+
+.result-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 60% at 50% 0%, rgba(200,255,0,0.08), transparent 70%);
+  pointer-events: none;
+}
+
+.result-eyebrow {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+.result-outcome-text {
+  font-family: 'Anton', sans-serif;
+  font-size: clamp(3.5rem, 8vw, 6rem);
+  line-height: 1;
+  color: var(--acid);
+  text-shadow: 0 0 60px rgba(200,255,0,0.4);
+  letter-spacing: 0.02em;
+  position: relative;
+  z-index: 1;
+  animation: outcomePop 0.6s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+@keyframes outcomePop {
+  from { opacity: 0; transform: scale(0.8) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.result-matchup-text {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-top: 0.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+/* ──── SIGNAL BADGE ──── */
+.signal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 20px;
+  border-radius: 100px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  font-weight: 500;
+  margin: 1.2rem 0 0.4rem;
+  position: relative;
+  z-index: 1;
+}
+.signal-badge.s-strong { background: rgba(200,255,0,0.1); border: 1px solid rgba(200,255,0,0.35); color: var(--acid); }
+.signal-badge.s-mod { background: rgba(255,184,0,0.1); border: 1px solid rgba(255,184,0,0.3); color: var(--amber); }
+.signal-badge.s-weak { background: rgba(255,100,0,0.1); border: 1px solid rgba(255,100,0,0.3); color: #FF6400; }
+.signal-badge.s-none { background: rgba(255,58,58,0.1); border: 1px solid rgba(255,58,58,0.3); color: var(--red); }
+
+.disclaimer-txt {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  color: rgba(244,244,245,0.2);
+  text-transform: uppercase;
+  margin-top: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ──── PROB CARDS ──── */
+.prob-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+.prob-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.8rem 1.5rem;
+  text-align: center;
+  transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  position: relative;
+  overflow: hidden;
+}
+.prob-card:hover { transform: translateY(-3px); border-color: rgba(200,255,0,0.2); }
+.prob-card.active {
+  background: linear-gradient(135deg, rgba(200,255,0,0.1), rgba(200,255,0,0.04));
+  border-color: rgba(200,255,0,0.4);
+  box-shadow: 0 0 30px rgba(200,255,0,0.08), inset 0 0 30px rgba(200,255,0,0.03);
+}
+.prob-card.active::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--acid), transparent);
+}
+.prob-pct {
+  font-family: 'Anton', sans-serif;
+  font-size: 3.2rem;
+  line-height: 1;
+  color: var(--text);
+  transition: color 0.3s;
+}
+.prob-card.active .prob-pct { color: var(--acid); }
+.prob-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-top: 7px;
+}
+
+/* ──── TEAM INTEL CARDS ──── */
+.intel-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s;
+}
+.intel-card:hover { border-color: rgba(200,255,0,0.15); }
+.intel-card-kicker {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  color: var(--acid);
+  text-transform: uppercase;
+  margin-bottom: 1.4rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.intel-metrics {
+  display: flex;
+  gap: 0.7rem;
+  margin-bottom: 0.7rem;
+  flex-wrap: wrap;
+}
+.intel-metric {
+  flex: 1;
+  min-width: 70px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem 0.8rem;
+}
+.intel-metric-val {
+  font-family: 'Anton', sans-serif;
+  font-size: 2rem;
+  line-height: 1;
+  color: var(--text);
+}
+.intel-metric-lbl {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.56rem;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+/* ──── FORM PILLS ──── */
+.form-row { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 0.5rem; }
+.fp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px; height: 30px;
+  border-radius: 7px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  font-weight: 500;
+  position: relative;
+  overflow: hidden;
+}
+.fp::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+}
+.fp-W { background: rgba(200,255,0,0.18); color: var(--acid); border: 1px solid rgba(200,255,0,0.3); }
+.fp-D { background: rgba(255,184,0,0.15); color: var(--amber); border: 1px solid rgba(255,184,0,0.25); }
+.fp-L { background: rgba(255,58,58,0.12); color: var(--red); border: 1px solid rgba(255,58,58,0.2); }
+
+/* ──── H2H SECTION ──── */
+.h2h-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 2rem;
+  margin: 1.5rem 0;
+}
+.h2h-stat {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 500;
+  font-size: 0.95rem;
+  color: rgba(244,244,245,0.6);
+  margin-top: 1rem;
+  line-height: 1.6;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+/* ──── INSIDER NOTES ──── */
+.notes-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 2rem;
+  margin: 1.5rem 0;
+}
+.notes-item {
+  display: flex;
+  gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 500;
+  font-size: 0.95rem;
+  color: rgba(244,244,245,0.7);
+  line-height: 1.55;
+}
+.notes-item:last-child { border-bottom: none; }
+.note-icon { flex-shrink: 0; font-size: 1.05rem; margin-top: 1px; }
+
+/* ──── EXPANDER ──── */
+.streamlit-expanderHeader {
+  font-family: 'DM Mono', monospace !important;
+  font-size: 0.7rem !important;
+  letter-spacing: 0.15em !important;
+  color: var(--muted) !important;
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 10px !important;
+}
+.streamlit-expanderContent {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-top: none !important;
+}
+
+/* ──── BACK BUTTON (override) ──── */
+.back-btn-wrap .stButton > button {
+  background: transparent !important;
+  color: var(--muted) !important;
+  border: 1px solid var(--border) !important;
+  font-family: 'DM Mono', monospace !important;
+  font-size: 0.7rem !important;
+  letter-spacing: 0.12em !important;
+  padding: 0.5rem 1.2rem !important;
+  width: auto !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+}
+.back-btn-wrap .stButton > button:hover {
+  border-color: rgba(200,255,0,0.3) !important;
+  color: var(--acid) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* ──── SPINNER ──── */
+.stSpinner > div { border-top-color: var(--acid) !important; }
+
+/* ──── SECTION SPACER ──── */
+.section-tag {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.22em;
+  color: var(--acid);
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-tag::before {
+  content: '';
+  width: 20px; height: 1px;
+  background: var(--acid);
+  flex-shrink: 0;
+}
+
+/* ──── RESPONSIVE ──── */
+@media (max-width: 768px) {
+  .hero-wordmark { font-size: 5rem; }
+  .metrics-strip { flex-direction: column; }
+  .metric-block { border-right: none; border-bottom: 1px solid var(--border); }
+  .metric-block:last-child { border-bottom: none; }
+  .compare-grid { grid-template-columns: 1fr; }
+  .compare-divider { display: none; }
+  .selector-zone, .pred-topbar, .results-pad { padding-left: 1.5rem !important; padding-right: 1.5rem !important; }
+  .prob-grid { grid-template-columns: 1fr 1fr; }
+  .prob-grid .prob-card:last-child { grid-column: 1/-1; }
+}
+
+/* ──── ANIMATED LINE SEPARATOR ──── */
+.line-sep {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(200,255,0,0.3), transparent);
+  margin: 3rem 0;
+  position: relative;
+  z-index: 1;
+  animation: linePulse 3s ease-in-out infinite;
+}
+@keyframes linePulse {
+  0%,100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
 </style>
 """, unsafe_allow_html=True)
 
+# ── Model / data loaders ──────────────────────────────────────────────────────
 @st.cache_resource
 def load_models():
-    """Load trained models and feature columns"""
     try:
-        xgb_model = joblib.load('models/xgboost_model.pkl')
-        rf_model = joblib.load('models/random_forest_model.pkl')
-        feature_cols = joblib.load('models/feature_columns.pkl')
-        return xgb_model, rf_model, feature_cols, True
-    except Exception as e:
-        st.error(f"Error loading models: {e}")
+        xgb = joblib.load('models/xgboost_model.pkl')
+        rf  = joblib.load('models/random_forest_model.pkl')
+        fc  = joblib.load('models/feature_columns.pkl')
+        return xgb, rf, fc, True
+    except:
         return None, None, None, False
 
 @st.cache_data
 def load_data():
-    """Load features and team list"""
     try:
-        features_df = pd.read_csv('data/features.csv')
-        features_df['Date'] = pd.to_datetime(features_df['Date'])
-        
-        # Get unique teams
-        home_teams = set(features_df['HomeTeam'].unique())
-        away_teams = set(features_df['AwayTeam'].unique())
-        teams = sorted(home_teams | away_teams)
-        
-        return features_df, teams, True
-    except Exception as e:
-        st.error(f"Error loading data: {e}")
+        df = pd.read_csv('data/features.csv')
+        df['Date'] = pd.to_datetime(df['Date'])
+        teams = sorted(set(df['HomeTeam'].unique()) | set(df['AwayTeam'].unique()))
+        return df, teams, True
+    except:
         return None, None, False
 
-def get_team_stats(features_df, team_name, is_home=True):
-    """Get latest statistics for a team"""
-    try:
-        if is_home:
-            team_matches = features_df[features_df['HomeTeam'] == team_name]
+# ── Stats helpers ──────────────────────────────────────────────────────────────
+def get_team_form(df, team, n=5):
+    home = df[df['HomeTeam']==team][['Date','FTR']].copy()
+    home['result'] = home['FTR'].map({'H':'W','D':'D','A':'L'})
+    away = df[df['AwayTeam']==team][['Date','FTR']].copy()
+    away['result'] = away['FTR'].map({'H':'L','D':'D','A':'W'})
+    combined = pd.concat([home[['Date','result']], away[['Date','result']]])
+    return combined.sort_values('Date', ascending=False).head(n)['result'].tolist()
+
+def get_team_stats(df, team):
+    home = df[df['HomeTeam']==team].copy()
+    away = df[df['AwayTeam']==team].copy()
+    all_m = pd.concat([
+        home[['Date','FTHG','FTAG','FTR']].assign(venue='home'),
+        away[['Date','FTHG','FTAG','FTR']].assign(venue='away')
+    ]).sort_values('Date', ascending=False).head(38)
+    if len(all_m)==0:
+        return {'played':0,'wins':0,'draws':0,'losses':0,'goals_for':0,'goals_against':0,'gd':0,'win_rate':0}
+    wins   = (((all_m['venue']=='home')&(all_m['FTR']=='H'))|((all_m['venue']=='away')&(all_m['FTR']=='A'))).sum()
+    draws  = (all_m['FTR']=='D').sum()
+    losses = len(all_m)-wins-draws
+    gf = int(np.where(all_m['venue']=='home', all_m['FTHG'], all_m['FTAG']).sum())
+    ga = int(np.where(all_m['venue']=='home', all_m['FTAG'], all_m['FTHG']).sum())
+    return {'played':len(all_m),'wins':int(wins),'draws':int(draws),'losses':int(losses),
+            'goals_for':gf,'goals_against':ga,'gd':gf-ga,'win_rate':round(wins/len(all_m)*100)}
+
+def get_h2h(df, home, away, n=5):
+    h2h = df[((df['HomeTeam']==home)&(df['AwayTeam']==away))|((df['HomeTeam']==away)&(df['AwayTeam']==home))]
+    h2h = h2h.sort_values('Date', ascending=False).head(n)
+    results = []
+    for _, row in h2h.iterrows():
+        if row['HomeTeam']==home:
+            results.append({'H':'W','D':'D','A':'L'}[row['FTR']])
         else:
-            team_matches = features_df[features_df['AwayTeam'] == team_name]
-        
-        if len(team_matches) == 0:
-            return None
-        
-        # Get most recent match
-        team_matches = team_matches.sort_values('Date', ascending=False)
-        return team_matches.iloc[0]
-    except Exception as e:
-        st.error(f"Error getting team stats: {e}")
-        return None
+            results.append({'A':'W','D':'D','H':'L'}[row['FTR']])
+    return results
 
-def extract_features(home_stats, away_stats, feature_cols):
-    """Extract features from team statistics"""
-    match_features = pd.DataFrame(index=[0])
-    
-    for col in feature_cols:
-        if '_home' in col:
-            try:
-                match_features[col] = home_stats[col]
-            except:
-                match_features[col] = 0
-        elif '_away' in col:
-            try:
-                match_features[col] = away_stats[col]
-            except:
-                match_features[col] = 0
-        else:
-            # Differential features
-            match_features[col] = 0
-    
-    # Ensure all features exist
-    for col in feature_cols:
-        if col not in match_features.columns:
-            match_features[col] = 0
-    
-    match_features = match_features[feature_cols]
-    return match_features
+def run_prediction(home, away, xgb, rf, df, fc):
+    hr = df[df['HomeTeam']==home].sort_values('Date', ascending=False)
+    ar = df[df['AwayTeam']==away].sort_values('Date', ascending=False)
+    if len(hr)==0 or len(ar)==0: return None
+    home_row, away_row = hr.iloc[0], ar.iloc[0]
+    feats = pd.DataFrame(index=[0])
+    for col in fc:
+        if '_home' in col: feats[col] = home_row.get(col, 0)
+        elif '_away' in col: feats[col] = away_row.get(col, 0)
+        else: feats[col] = 0
+    for col in fc:
+        if col not in feats.columns: feats[col] = 0
+    feats = feats[fc].fillna(0)
+    xp = xgb.predict_proba(feats)[0]
+    rp = rf.predict_proba(feats)[0]
+    ens = 0.6*xp + 0.4*rp
+    return {'proba': ens, 'outcome': ['Home Win','Draw','Away Win'][np.argmax(ens)],
+            'confidence': ens.max(), 'xgb': xp, 'rf': rp}
 
-def predict_match(home_team, away_team, xgb_model, rf_model, features_df, feature_cols):
-    """Predict match outcome"""
-    # Get team stats
-    home_stats = get_team_stats(features_df, home_team, is_home=True)
-    away_stats = get_team_stats(features_df, away_team, is_home=False)
-    
-    if home_stats is None or away_stats is None:
-        return None
-    
-    # Extract features
-    match_features = extract_features(home_stats, away_stats, feature_cols)
-    
-    # Make predictions
-    xgb_proba = xgb_model.predict_proba(match_features)[0]
-    rf_proba = rf_model.predict_proba(match_features)[0]
-    
-    # Ensemble (60% XGBoost, 40% RF)
-    ensemble_proba = 0.6 * xgb_proba + 0.4 * rf_proba
-    
-    prediction_idx = np.argmax(ensemble_proba)
-    outcomes = ['Home Win', 'Draw', 'Away Win']
-    
-    return {
-        'predicted_outcome': outcomes[prediction_idx],
-        'confidence': ensemble_proba[prediction_idx],
-        'home_win_prob': ensemble_proba[0],
-        'draw_prob': ensemble_proba[1],
-        'away_win_prob': ensemble_proba[2],
-        'xgb_proba': xgb_proba,
-        'rf_proba': rf_proba
-    }
+# ── HTML helpers ───────────────────────────────────────────────────────────────
+def form_html(form):
+    return '<div class="form-row">' + ''.join([
+        f'<span class="fp fp-{r}">{r}</span>' for r in form
+    ]) + '</div>'
 
-def create_probability_chart(result):
-    """Create probability bar chart"""
-    outcomes = ['Home Win', 'Draw', 'Away Win']
-    probabilities = [
-        result['home_win_prob'],
-        result['draw_prob'],
-        result['away_win_prob']
-    ]
-    
-    colors = ['#00ff85', '#ffd700', '#ff4444']
-    
-    fig = go.Figure(data=[
-        go.Bar(
-            x=outcomes,
-            y=[p * 100 for p in probabilities],
-            marker_color=colors,
-            text=[f"{p*100:.1f}%" for p in probabilities],
-            textposition='auto',
-        )
-    ])
-    
-    fig.update_layout(
-        title="Prediction Probabilities",
-        yaxis_title="Probability (%)",
-        xaxis_title="Outcome",
-        height=400,
-        showlegend=False,
-        plot_bgcolor='rgba(0,0,0,0)',
-        paper_bgcolor='rgba(0,0,0,0)',
-    )
-    
-    return fig
-
-def create_gauge_chart(confidence):
-    """Create confidence gauge chart"""
-    fig = go.Figure(go.Indicator(
-        mode="gauge+number",
-        value=confidence * 100,
-        title={'text': "Confidence Level"},
-        domain={'x': [0, 1], 'y': [0, 1]},
-        gauge={
-            'axis': {'range': [None, 100]},
-            'bar': {'color': "#00ff85"},
-            'steps': [
-                {'range': [0, 45], 'color': "#ffcccc"},
-                {'range': [45, 55], 'color': "#fff4cc"},
-                {'range': [55, 65], 'color': "#ccffcc"},
-                {'range': [65, 100], 'color': "#ccffee"}
-            ],
-            'threshold': {
-                'line': {'color': "red", 'width': 4},
-                'thickness': 0.75,
-                'value': 65
-            }
-        }
-    ))
-    
-    fig.update_layout(height=300, margin=dict(l=20, r=20, t=50, b=20))
-    return fig
-
-def get_betting_recommendation(confidence):
-    """Get betting recommendation based on confidence"""
-    if confidence >= 0.65:
-        return "🟢 STRONG BET", "High confidence prediction. Good betting opportunity."
-    elif confidence >= 0.55:
-        return "🟡 MODERATE BET", "Moderate confidence. Proceed with caution."
-    elif confidence >= 0.45:
-        return "🟠 WEAK SIGNAL", "Low confidence. Consider avoiding this bet."
+def signal_badge_html(conf):
+    if conf >= 0.65:
+        return '<div class="signal-badge s-strong">⚡ STRONG SIGNAL</div>'
+    elif conf >= 0.55:
+        return '<div class="signal-badge s-mod">◈ MODERATE SIGNAL</div>'
+    elif conf >= 0.45:
+        return '<div class="signal-badge s-weak">⚠ WEAK SIGNAL</div>'
     else:
-        return "🔴 NO CLEAR PREDICTION", "Very low confidence. Do not bet."
+        return '<div class="signal-badge s-none">✕ NO CLEAR EDGE</div>'
 
-def main():
-    # Header
-    st.markdown('<h1 class="main-header">⚽ Premier League Match Predictor</h1>', unsafe_allow_html=True)
-    st.markdown('<p class="sub-header">AI-Powered Match Outcome Predictions | 55% Accuracy</p>', unsafe_allow_html=True)
-    
-    # Load models and data
-    with st.spinner('Loading models and data...'):
-        xgb_model, rf_model, feature_cols, models_loaded = load_models()
-        features_df, teams, data_loaded = load_data()
-    
-    if not models_loaded or not data_loaded:
-        st.error("⚠️ Failed to load models or data. Please ensure:")
-        st.markdown("""
-        - `models/xgboost_model.pkl` exists
-        - `models/random_forest_model.pkl` exists
-        - `models/feature_columns.pkl` exists
-        - `data/features.csv` exists
-        
-        Run `python src/train_models.py` to create the models.
-        """)
-        return
-    
-    st.success("✅ Models loaded successfully!")
-    
-    # Sidebar
-    with st.sidebar:
-        st.image("https://upload.wikimedia.org/wikipedia/en/thumb/f/f2/Premier_League_Logo.svg/1200px-Premier_League_Logo.svg.png", width=200)
-        st.markdown("---")
-        
-        st.markdown("### 📊 Model Info")
-        st.markdown(f"""
-        - **Algorithm**: XGBoost + Random Forest Ensemble
-        - **Accuracy**: 55.4%
-        - **Features**: {len(feature_cols)}
-        - **Training Data**: 10 years (2015-2025)
-        - **Total Matches**: {len(features_df)}
-        """)
-        
-        st.markdown("---")
-        st.markdown("### 📈 Performance Benchmarks")
-        st.markdown("""
-        - Random Guess: 33%
-        - Always Home Win: 45%
-        - **Our Model: 55%** ✅
-        """)
-        
-        st.markdown("---")
-        st.markdown("### ℹ️ About")
-        st.markdown("""
-        This ML model predicts Premier League match outcomes using:
-        - Recent team form
-        - Goal statistics
-        - Head-to-head records
-        - Home/Away performance
-        - 219 engineered features
-        """)
-    
-    # Main content
-    tab1, tab2, tab3 = st.tabs(["🎯 Predict Match", "📊 Available Teams", "📖 How It Works"])
-    
-    with tab1:
-        st.markdown("## Make a Prediction")
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.markdown("### 🏠 Home Team")
-            home_team = st.selectbox(
-                "Select home team",
-                options=teams,
-                index=0,
-                key="home"
-            )
-        
-        with col2:
-            st.markdown("### ✈️ Away Team")
-            away_team = st.selectbox(
-                "Select away team",
-                options=[t for t in teams if t != home_team],
-                index=0,
-                key="away"
-            )
-        
-        st.markdown("---")
-        
-        if st.button("🔮 PREDICT MATCH OUTCOME", use_container_width=True):
-            with st.spinner('Analyzing match...'):
-                result = predict_match(home_team, away_team, xgb_model, rf_model, features_df, feature_cols)
-            
-            if result is None:
-                st.error("Could not make prediction. Team data not found.")
-                return
-            
-            # Display prediction
-            st.markdown(f"""
-            <div class="prediction-box">
-                <h1 style="margin: 0; font-size: 2.5rem;">🏆 {result['predicted_outcome']}</h1>
-                <p style="margin-top: 1rem; font-size: 1.3rem; opacity: 0.9;">
-                    {home_team} vs {away_team}
-                </p>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            # Metrics
-            col1, col2, col3, col4 = st.columns(4)
-            
-            with col1:
-                st.metric(
-                    "Home Win",
-                    f"{result['home_win_prob']*100:.1f}%",
-                    delta="Probability"
-                )
-            
-            with col2:
-                st.metric(
-                    "Draw",
-                    f"{result['draw_prob']*100:.1f}%",
-                    delta="Probability"
-                )
-            
-            with col3:
-                st.metric(
-                    "Away Win",
-                    f"{result['away_win_prob']*100:.1f}%",
-                    delta="Probability"
-                )
-            
-            with col4:
-                st.metric(
-                    "Confidence",
-                    f"{result['confidence']*100:.1f}%",
-                    delta=result['predicted_outcome']
-                )
-            
-            st.markdown("---")
-            
-            # Charts
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                st.plotly_chart(create_probability_chart(result), use_container_width=True)
-            
-            with col2:
-                st.plotly_chart(create_gauge_chart(result['confidence']), use_container_width=True)
-            
-            # Betting recommendation
-            st.markdown("---")
-            st.markdown("### 🎲 Betting Recommendation")
-            
-            recommendation, description = get_betting_recommendation(result['confidence'])
-            
-            col1, col2 = st.columns([1, 3])
-            with col1:
-                st.markdown(f"### {recommendation}")
-            with col2:
-                st.info(description)
-            
-            # Model breakdown
-            with st.expander("🔍 Model Breakdown"):
-                st.markdown("#### Individual Model Predictions")
-                
-                col1, col2 = st.columns(2)
-                
-                with col1:
-                    st.markdown("**XGBoost (60% weight)**")
-                    st.write(f"Home Win: {result['xgb_proba'][0]*100:.1f}%")
-                    st.write(f"Draw: {result['xgb_proba'][1]*100:.1f}%")
-                    st.write(f"Away Win: {result['xgb_proba'][2]*100:.1f}%")
-                
-                with col2:
-                    st.markdown("**Random Forest (40% weight)**")
-                    st.write(f"Home Win: {result['rf_proba'][0]*100:.1f}%")
-                    st.write(f"Draw: {result['rf_proba'][1]*100:.1f}%")
-                    st.write(f"Away Win: {result['rf_proba'][2]*100:.1f}%")
-    
-    with tab2:
-        st.markdown("## 📋 Available Teams")
-        st.markdown(f"**Total Teams**: {len(teams)}")
-        
-        # Display teams in columns
-        cols = st.columns(4)
-        for idx, team in enumerate(teams):
-            with cols[idx % 4]:
-                st.markdown(f"✅ {team}")
-    
-    with tab3:
-        st.markdown("## 📖 How It Works")
-        
-        st.markdown("""
-        ### 🧠 Machine Learning Pipeline
-        
-        #### 1. Data Collection
-        - 10 years of Premier League match data (2015-2025)
-        - ~3,800 historical matches
-        - Team performance statistics
-        
-        #### 2. Feature Engineering
-        We create **219 features** including:
-        - **Form Metrics**: Rolling averages of points, goals, win ratios
-        - **Momentum**: Exponential weighted moving averages
-        - **Head-to-Head**: Historical matchup statistics
-        - **Home/Away Splits**: Performance by venue
-        - **Differentials**: Comparing home vs away team strengths
-        
-        #### 3. Model Training
-        - **XGBoost**: Gradient boosted decision trees (60% weight)
-        - **Random Forest**: Ensemble of 300 trees (40% weight)
-        - **Ensemble**: Weighted combination of both models
-        
-        #### 4. Prediction
-        - Extract latest team statistics
-        - Apply feature engineering
-        - Generate probabilities for all 3 outcomes
-        - Provide confidence-based betting recommendations
-        
-        ### 📊 Model Performance
-        
-        | Metric | Value |
-        |--------|-------|
-        | Overall Accuracy | 55.4% |
-        | Home Win Precision | 58.2% |
-        | Draw Precision | 34.1% |
-        | Away Win Precision | 52.8% |
-        
-        ### 🎯 Confidence Levels
-        
-        | Confidence | Accuracy | Recommendation |
-        |------------|----------|----------------|
-        | 65%+ | ~68% | Strong bet |
-        | 55-65% | ~60% | Moderate bet |
-        | 45-55% | ~52% | Weak signal |
-        | <45% | ~50% | Avoid betting |
-        
-        ### ⚠️ Limitations
-        
-        - Does not account for injuries, suspensions, or team news
-        - Historical data may not reflect current team changes
-        - Weather and referee factors not included
-        - No live odds integration
-        
-        ### 🔮 Future Improvements
-        
-        - Player-level statistics
-        - Real-time injury updates
-        - Betting odds as features
-        - Deep learning models
-        - Live prediction updates
-        """)
-        
-        st.info("💡 **Disclaimer**: This model is for educational and entertainment purposes only. Always gamble responsibly.")
-    
-    # Footer
-    st.markdown("---")
+def insider_notes(home, away, res, hs, as_, h2h):
+    notes = []
+    notes.append(("🤖", f"Ensemble model: XGBoost ({res['xgb'][np.argmax(res['proba'])]*100:.0f}%) + Random Forest ({res['rf'][np.argmax(res['proba'])]*100:.0f}%) weighted 60/40."))
+    if res['confidence'] > 0.60:
+        notes.append(("🔥", f"High model conviction — {res['outcome']} is the dominant call across both algorithms."))
+    else:
+        notes.append(("🌊", "Probabilities are spread. Treat this as a contested fixture — anything can happen."))
+    gd_diff = hs['gd'] - as_['gd']
+    if abs(gd_diff) > 10:
+        better = home if gd_diff > 0 else away
+        notes.append(("📈", f"{better} hold a significantly better goal difference this season, indicating stronger overall form."))
+    if hs['win_rate'] > 60:
+        notes.append(("🏠", f"{home} are winning {hs['win_rate']}% of their recent matches — elite consistency at home."))
+    if as_['win_rate'] > 60:
+        notes.append(("✈️", f"{away} carry a {as_['win_rate']}% win rate — dangerous regardless of venue."))
+    if h2h:
+        notes.append(("⚔️", f"Historical record ({home} perspective): {h2h.count('W')}W · {h2h.count('D')}D · {h2h.count('L')}L from last {len(h2h)} meetings."))
+    if res['proba'][1] > 0.30:
+        notes.append(("🤝", f"Draw probability elevated ({res['proba'][1]*100:.0f}%). Expect a tight, cagey tactical battle."))
+    notes.append(("⚠️", "Injuries, suspensions, weather, and referee decisions are NOT factored in. Always apply context before acting."))
+    return notes
+
+# ── Session state ──────────────────────────────────────────────────────────────
+if 'page'   not in st.session_state: st.session_state.page   = 'landing'
+if 'result' not in st.session_state: st.session_state.result = None
+
+# ── Always-on bg layers ───────────────────────────────────────────────────────
+st.markdown("""
+<div class="orb-container">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+<div class="bg-grid"></div>
+""", unsafe_allow_html=True)
+
+xgb_model, rf_model, feature_cols, models_ok = load_models()
+df, teams, data_ok = load_data()
+
+# ════════════════════════════════════════════════════════════════════════════════
+# LANDING PAGE
+# ════════════════════════════════════════════════════════════════════════════════
+if st.session_state.page == 'landing':
+
+    st.markdown('<div class="landing-wrap">', unsafe_allow_html=True)
+
     st.markdown("""
-    <div style="text-align: center; color: #666; padding: 2rem;">
-        <p>Built with  using Streamlit, XGBoost, and scikit-learn</p>
-        <p>Data source: football-data.co.uk | Model accuracy: 55%</p>
-        <p> For educational purposes only. Gamble responsibly.</p>
+    <div style="text-align:center;">
+      <div class="eyebrow">
+        <span class="eyebrow-pulse"></span>
+        AI-POWERED · PREMIER LEAGUE · SEASON 2024/25
+      </div>
+    </div>
+
+    <div class="hero-wordmark">
+      <span class="wm-kick">KICK</span><span class="wm-iq">IQ</span>
+    </div>
+
+    <div class="hero-tagline">Predict the game — before the whistle blows</div>
+
+    <p class="hero-desc">
+      Advanced ensemble ML trained on a decade of Premier League data.
+      Not just predictions — machine-grade insights your gut can't compute.
+    </p>
+    """, unsafe_allow_html=True)
+
+    # Power metrics strip
+    st.markdown("""
+    <div class="metrics-strip" style="max-width:700px;margin-left:auto;margin-right:auto;margin-top:4rem;margin-bottom:3.5rem;">
+      <div class="metric-block" style="text-align:center;">
+        <div class="metric-val">3,800+</div>
+        <div class="metric-lbl">Matches Trained</div>
+      </div>
+      <div class="metric-block" style="text-align:center;">
+        <div class="metric-val">219</div>
+        <div class="metric-lbl">Features Engineered</div>
+      </div>
+      <div class="metric-block" style="text-align:center;">
+        <div class="metric-val">10Y</div>
+        <div class="metric-lbl">Historical Data</div>
+      </div>
+      <div class="metric-block" style="text-align:center;">
+        <div class="metric-val">2</div>
+        <div class="metric-lbl">Stacked Models</div>
+      </div>
     </div>
     """, unsafe_allow_html=True)
 
-if __name__ == "__main__":
-    main()
+    col1, col2, col3 = st.columns([1, 1.4, 1])
+    with col2:
+        if st.button("⚡  LAUNCH PREDICTION ENGINE", key="cta_btn"):
+            st.session_state.page = 'predict'
+            st.rerun()
+
+    # VS comparison
+    st.markdown("""
+    <div class="vs-section" style="margin-top:5rem;">
+      <div class="vs-heading">WHY KICKIQ HITS DIFFERENT</div>
+      <div class="compare-grid">
+        <div class="compare-col ours">
+          <div class="compare-col-label">⚡ KICKIQ</div>
+          <div class="compare-row"><span class="c-check">✓</span> 219 engineered features per match</div>
+          <div class="compare-row"><span class="c-check">✓</span> XGBoost + Random Forest ensemble</div>
+          <div class="compare-row"><span class="c-check">✓</span> 10 years of training data</div>
+          <div class="compare-row"><span class="c-check">✓</span> Home/Away split analysis</div>
+          <div class="compare-row"><span class="c-check">✓</span> Head-to-head historical patterns</div>
+          <div class="compare-row"><span class="c-check">✓</span> Momentum & form streaks tracked</div>
+          <div class="compare-row"><span class="c-check">✓</span> Goal difference trend analysis</div>
+          <div class="compare-row"><span class="c-check">✓</span> Confidence-scored signals</div>
+          <div class="compare-row"><span class="c-check">✓</span> AI insider context per match</div>
+        </div>
+        <div class="compare-divider"><div class="vs-pill">VS</div></div>
+        <div class="compare-col">
+          <div class="compare-col-label" style="color:rgba(244,244,245,0.3);">👴 Other Predictors</div>
+          <div class="compare-row"><span class="c-cross">✗</span> Single model only</div>
+          <div class="compare-row"><span class="c-cross">✗</span> Only recent form</div>
+          <div class="compare-row"><span class="c-cross">✗</span> No ensemble stacking</div>
+          <div class="compare-row"><span class="c-cross">✗</span> Basic win/loss stats</div>
+          <div class="compare-row"><span class="c-cross">✗</span> No H2H weighting</div>
+          <div class="compare-row"><span class="c-cross">✗</span> Static output only</div>
+          <div class="compare-row"><span class="c-cross">✗</span> No trend analysis</div>
+          <div class="compare-row"><span class="c-cross">✗</span> No confidence scoring</div>
+          <div class="compare-row"><span class="c-cross">✗</span> No contextual insights</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="landing-footer">
+      Built with XGBoost · scikit-learn · Streamlit · 2024/25 EPL Data<br>
+      ⚠ For entertainment purposes only · Bet responsibly · Not financial advice
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown('</div>', unsafe_allow_html=True)  # landing-wrap
+
+elif st.session_state.page == 'predict':
+
+    if not models_ok or not data_ok:
+        st.error("⚠️ Run `python src/train_models.py` first to generate models & features.")
+        st.stop()
+
+    # ─────────────────────────────────────────
+    # TOP BAR (Cleaner hierarchy + spacing)
+    # ─────────────────────────────────────────
+    st.markdown("""
+    <div class="pred-topbar">
+      <div>
+        <div class="pred-logo-text">KICK<span class="iq">IQ</span></div>
+        <div class="pred-subtitle"><span class="live-dot"></span>PREDICTION ENGINE · LIVE</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.14em;color:rgba(244,244,245,0.25);text-transform:uppercase;">
+          EPL 2024/25
+        </div>
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # ─────────────────────────────────────────
+    # BACK BUTTON — FIXED UX FLOW
+    # ─────────────────────────────────────────
+    back_col1, back_col2 = st.columns([8,2])
+    with back_col2:
+        if st.button("← BACK", key="back_btn"):
+            st.session_state.page   = 'landing'
+            st.session_state.result = None
+            st.rerun()
+
+    # ─────────────────────────────────────────
+    # MATCH SELECTOR (CENTERED + BALANCED)
+    # ─────────────────────────────────────────
+    st.markdown('<div class="selector-zone">', unsafe_allow_html=True)
+
+    st.markdown("""
+    <div style="max-width:950px;margin:auto;">
+      <div class="section-kicker">MATCH SELECTION</div>
+      <div class="section-title" style="text-align:center;">WHO'S PLAYING?</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    outer_left, center_area, outer_right = st.columns([1,7,1])
+
+    with center_area:
+
+        c1, c2, c3 = st.columns([5,1,5])
+
+        with c1:
+            home_team = st.selectbox("🏠  HOME TEAM", teams, key="home_sel")
+
+        with c2:
+            st.markdown("<div style='height:44px'></div>", unsafe_allow_html=True)
+            st.markdown("""
+            <div style="text-align:center;">
+                <span style="font-family:'Anton';font-size:1.9rem;color:rgba(244,244,245,0.15);">VS</span>
+            </div>
+            """, unsafe_allow_html=True)
+
+        with c3:
+            away_options = [t for t in teams if t != home_team]
+            away_team = st.selectbox("✈️  AWAY TEAM", away_options, key="away_sel")
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # ─────────────────────────────────────────
+    # PRIMARY CTA — VISUAL DOMINANCE IMPROVED
+    # ─────────────────────────────────────────
+    cta_l, cta_m, cta_r = st.columns([2,4,2])
+
+    with cta_m:
+        clicked = st.button(
+            "⚡  ANALYSE THIS MATCH",
+            key="pred_btn",
+            use_container_width=True
+        )
+
+    if clicked:
+        with st.spinner('Running ensemble analysis…'):
+            st.session_state.result = run_prediction(
+                home_team,
+                away_team,
+                xgb_model,
+                rf_model,
+                df,
+                feature_cols
+            )
+            
+    if st.session_state.result:
+        res = st.session_state.result
+        hs  = get_team_stats(df, home_team)
+        as_ = get_team_stats(df, away_team)
+        hf  = get_team_form(df, home_team, 5)
+        af  = get_team_form(df, away_team, 5)
+        h2h = get_h2h(df, home_team, away_team, 5)
+
+        pad = '<div style="padding:0 3rem 5rem;position:relative;z-index:1;">'
+        st.markdown(pad, unsafe_allow_html=True)
+
+        # ── Outcome card ──
+        st.markdown(f"""
+        <div class="result-hero">
+          <div class="result-eyebrow">{home_team.upper()} vs {away_team.upper()} · {datetime.now().strftime('%d %B %Y').upper()}</div>
+          <div class="result-outcome-text">{res['outcome'].upper()}</div>
+          <div class="result-matchup-text">MODEL PREDICTION · ENSEMBLE</div>
+          {signal_badge_html(res['confidence'])}
+          <div class="disclaimer-txt">⚠ Entertainment only · Not financial advice · Bet at your own risk</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # ── Probability breakdown ──
+        st.markdown('<div class="section-tag" style="margin-top:2rem;">PROBABILITY BREAKDOWN</div>', unsafe_allow_html=True)
+
+        ha = "active" if res['outcome']=='Home Win' else ""
+        da = "active" if res['outcome']=='Draw'     else ""
+        aa = "active" if res['outcome']=='Away Win' else ""
+
+        st.markdown(f"""
+        <div class="prob-grid">
+          <div class="prob-card {ha}">
+            <div class="prob-pct">{res['proba'][0]*100:.0f}%</div>
+            <div class="prob-label">🏠 {home_team}</div>
+          </div>
+          <div class="prob-card {da}">
+            <div class="prob-pct">{res['proba'][1]*100:.0f}%</div>
+            <div class="prob-label">🤝 Draw</div>
+          </div>
+          <div class="prob-card {aa}">
+            <div class="prob-pct">{res['proba'][2]*100:.0f}%</div>
+            <div class="prob-label">✈️ {away_team}</div>
+          </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # ── Plotly chart ──
+        winner_idx = int(np.argmax(res['proba']))
+        bar_colors = [
+            'rgba(200,255,0,0.85)' if i==winner_idx else 'rgba(255,255,255,0.06)'
+            for i in range(3)
+        ]
+        fig = go.Figure(go.Bar(
+            x=[home_team, 'Draw', away_team],
+            y=[p*100 for p in res['proba']],
+            marker=dict(
+                color=bar_colors,
+                line=dict(width=0),
+                cornerradius=6
+            ),
+            text=[f"{p*100:.1f}%" for p in res['proba']],
+            textposition='outside',
+            textfont=dict(family='DM Mono', size=11, color='rgba(244,244,245,0.5)')
+        ))
+        fig.update_layout(
+            height=220,
+            margin=dict(l=0, r=0, t=20, b=0),
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)',
+            yaxis=dict(showgrid=False, showticklabels=False, range=[0, 115]),
+            xaxis=dict(
+                showgrid=False,
+                tickfont=dict(family='DM Mono', size=10, color='rgba(244,244,245,0.35)')
+            ),
+            bargap=0.4
+        )
+        st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+
+        # ── Team intelligence ──
+        st.markdown('<div class="line-sep"></div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-tag">TEAM INTELLIGENCE</div>', unsafe_allow_html=True)
+
+        def gd_color(v): return "#C8FF00" if v >= 0 else "#FF3A3A"
+        def gd_str(v):   return f"+{v}" if v >= 0 else str(v)
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.markdown(f"""
+            <div class="intel-card">
+              <div class="intel-card-kicker">🏠 {home_team.upper()} · RECENT FORM</div>
+              <div class="intel-metrics">
+                <div class="intel-metric">
+                  <div class="intel-metric-val">{hs['wins']}</div>
+                  <div class="intel-metric-lbl">Wins</div>
+                </div>
+                <div class="intel-metric">
+                  <div class="intel-metric-val">{hs['draws']}</div>
+                  <div class="intel-metric-lbl">Draws</div>
+                </div>
+                <div class="intel-metric">
+                  <div class="intel-metric-val">{hs['losses']}</div>
+                  <div class="intel-metric-lbl">Losses</div>
+                </div>
+              </div>
+              <div class="intel-metrics">
+                <div class="intel-metric">
+                  <div class="intel-metric-val" style="color:#C8FF00;">{hs['goals_for']}</div>
+                  <div class="intel-metric-lbl">Goals For</div>
+                </div>
+                <div class="intel-metric">
+                  <div class="intel-metric-val" style="color:#FF3A3A;">{hs['goals_against']}</div>
+                  <div class="intel-metric-lbl">Goals Against</div>
+                </div>
+                <div class="intel-metric">
+                  <div class="intel-metric-val" style="color:{gd_color(hs['gd'])};">{gd_str(hs['gd'])}</div>
+                  <div class="intel-metric-lbl">Goal Diff</div>
+                </div>
+              </div>
+              <div class="intel-card-kicker" style="margin-top:1.2rem;margin-bottom:0.5rem;">LAST 5</div>
+              {form_html(hf)}
+            </div>
+            """, unsafe_allow_html=True)
+
+        with col2:
+            st.markdown(f"""
+            <div class="intel-card">
+              <div class="intel-card-kicker">✈️ {away_team.upper()} · RECENT FORM</div>
+              <div class="intel-metrics">
+                <div class="intel-metric">
+                  <div class="intel-metric-val">{as_['wins']}</div>
+                  <div class="intel-metric-lbl">Wins</div>
+                </div>
+                <div class="intel-metric">
+                  <div class="intel-metric-val">{as_['draws']}</div>
+                  <div class="intel-metric-lbl">Draws</div>
+                </div>
+                <div class="intel-metric">
+                  <div class="intel-metric-val">{as_['losses']}</div>
+                  <div class="intel-metric-lbl">Losses</div>
+                </div>
+              </div>
+              <div class="intel-metrics">
+                <div class="intel-metric">
+                  <div class="intel-metric-val" style="color:#C8FF00;">{as_['goals_for']}</div>
+                  <div class="intel-metric-lbl">Goals For</div>
+                </div>
+                <div class="intel-metric">
+                  <div class="intel-metric-val" style="color:#FF3A3A;">{as_['goals_against']}</div>
+                  <div class="intel-metric-lbl">Goals Against</div>
+                </div>
+                <div class="intel-metric">
+                  <div class="intel-metric-val" style="color:{gd_color(as_['gd'])};">{gd_str(as_['gd'])}</div>
+                  <div class="intel-metric-lbl">Goal Diff</div>
+                </div>
+              </div>
+              <div class="intel-card-kicker" style="margin-top:1.2rem;margin-bottom:0.5rem;">LAST 5</div>
+              {form_html(af)}
+            </div>
+            """, unsafe_allow_html=True)
+
+        # ── H2H ──
+        if h2h:
+            st.markdown('<div class="section-tag" style="margin-top:1.5rem;">HEAD TO HEAD</div>', unsafe_allow_html=True)
+            st.markdown(f"""
+            <div class="h2h-card">
+              <div class="intel-card-kicker">⚔️ LAST {len(h2h)} MEETINGS · {home_team.upper()} PERSPECTIVE</div>
+              {form_html(h2h)}
+              <div class="h2h-stat">
+                <span>📊</span>
+                <span>{home_team} won {h2h.count('W')}, drew {h2h.count('D')}, lost {h2h.count('L')} of last {len(h2h)} meetings against {away_team}.</span>
+              </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        # ── Insider intel ──
+        st.markdown('<div class="section-tag" style="margin-top:0.5rem;">INSIDER INTEL</div>', unsafe_allow_html=True)
+        notes = insider_notes(home_team, away_team, res, hs, as_, h2h)
+        notes_html = ''.join([
+            f'<div class="notes-item"><span class="note-icon">{ic}</span><span>{tx}</span></div>'
+            for ic, tx in notes
+        ])
+        st.markdown(f"""
+        <div class="notes-card">
+          <div class="intel-card-kicker">🤖 AI ANALYSIS · {home_team.upper()} vs {away_team.upper()}</div>
+          {notes_html}
+        </div>
+        """, unsafe_allow_html=True)
+
+        # ── Model internals ──
+        with st.expander("🔬  MODEL INTERNALS — XGBoost vs Random Forest"):
+            c1, c2 = st.columns(2)
+            with c1:
+                st.markdown("**XGBoost (60% weight)**")
+                for label, p in zip([home_team, 'Draw', away_team], res['xgb']):
+                    st.markdown(f"`{label}` → **{p*100:.1f}%**")
+            with c2:
+                st.markdown("**Random Forest (40% weight)**")
+                for label, p in zip([home_team, 'Draw', away_team], res['rf']):
+                    st.markdown(f"`{label}` → **{p*100:.1f}%**")
+
+        st.markdown('</div>', unsafe_allow_html=True)  # results pad
