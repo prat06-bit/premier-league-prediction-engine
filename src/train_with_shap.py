@@ -304,19 +304,16 @@ def main():
         'X_sample': X_sample,
         'feature_cols': feature_cols
     }, 'models/shap_analysis/shap_data.pkl')
-    
-    print("Model and SHAP data saved")
-    
+        
     print("\n" + "="*80)
-    print("ANALYSIS COMPLETE!")
     print("="*80)
     print("\nGenerated files in models/shap_analysis/:")
-    print("  📊 Summary plots (3): shap_summary_*.png")
-    print("  📊 Bar plots (3): shap_bar_*.png")
-    print("  📊 Overall importance: shap_overall_importance.png")
-    print("  📊 Dependence plots (15+): dependence/*.png")
-    print("  💾 Model: model.pkl")
-    print("  💾 SHAP data: shap_data.pkl")
+    print(" Summary plots (3): shap_summary_*.png")
+    print(" Bar plots (3): shap_bar_*.png")
+    print(" Overall importance: shap_overall_importance.png")
+    print(" Dependence plots (15+): dependence/*.png")
+    print(" Model: model.pkl")
+    print(" SHAP data: shap_data.pkl")
     
     print("\n" + "="*80)
     print("HOW TO INTERPRET SHAP PLOTS")

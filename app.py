@@ -25,6 +25,35 @@ components.html("""<script>
         el.style.setProperty('max-width','100%','important');
       });
     });
+    // Find the BACK button by text and force ghost style directly on the element
+    document.querySelectorAll('button').forEach(function(btn){
+      var txt = btn.innerText || btn.textContent || '';
+      if(txt.trim().startsWith('\u2190') || txt.trim() === '\u2190 BACK'){
+        btn.style.setProperty('background','transparent','important');
+        btn.style.setProperty('color','rgba(244,244,245,0.45)','important');
+        btn.style.setProperty('border','1px solid rgba(255,255,255,0.12)','important');
+        btn.style.setProperty('border-radius','8px','important');
+        btn.style.setProperty('font-family','"DM Mono",monospace','important');
+        btn.style.setProperty('font-size','0.65rem','important');
+        btn.style.setProperty('letter-spacing','0.16em','important');
+        btn.style.setProperty('padding','0.4rem 1rem','important');
+        btn.style.setProperty('width','auto','important');
+        btn.style.setProperty('min-width','0','important');
+        btn.style.setProperty('animation','none','important');
+        btn.style.setProperty('box-shadow','none','important');
+        btn.style.setProperty('transform','none','important');
+        btn.onmouseenter = function(){
+          btn.style.setProperty('color','#C8FF00','important');
+          btn.style.setProperty('border-color','rgba(200,255,0,0.35)','important');
+          btn.style.setProperty('background','rgba(200,255,0,0.04)','important');
+        };
+        btn.onmouseleave = function(){
+          btn.style.setProperty('color','rgba(244,244,245,0.45)','important');
+          btn.style.setProperty('border-color','rgba(255,255,255,0.12)','important');
+          btn.style.setProperty('background','transparent','important');
+        };
+      }
+    });
   }
   nuke();
   new MutationObserver(nuke).observe(document.documentElement,{childList:true,subtree:true});
@@ -72,10 +101,53 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 .metric-block:nth-child(1) .metric-val{animation-delay:0.55s;}.metric-block:nth-child(2) .metric-val{animation-delay:0.67s;}.metric-block:nth-child(3) .metric-val{animation-delay:0.79s;}.metric-block:nth-child(4) .metric-val{animation-delay:0.91s;}
 @keyframes metricPop{0%{opacity:0;transform:scale(0.55);}65%{transform:scale(1.12);opacity:1;}100%{transform:scale(1);}}
 .metric-lbl{font-family:'DM Mono',monospace;font-size:0.58rem;letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;margin-top:5px;}
-.stButton>button{background:var(--acid) !important;color:#050608 !important;border:none !important;border-radius:10px !important;font-family:'Anton',sans-serif !important;font-size:1.25rem !important;letter-spacing:0.1em !important;padding:1rem 2.5rem !important;width:100% !important;transition:all 0.22s cubic-bezier(0.34,1.56,0.64,1) !important;animation:ctaPulse 4s ease-in-out infinite !important;}
+/* ── ALL buttons default: big green acid style ── */
+.stButton>button{
+  background:var(--acid) !important;color:#050608 !important;border:none !important;
+  border-radius:12px !important;font-family:'Anton',sans-serif !important;
+  font-size:1.25rem !important;letter-spacing:0.1em !important;
+  padding:1rem 2.5rem !important;width:100% !important;
+  transition:all 0.22s cubic-bezier(0.34,1.56,0.64,1) !important;
+  animation:ctaPulse 4s ease-in-out infinite !important;
+}
 .stButton>button:hover{transform:translateY(-3px) scale(1.02) !important;box-shadow:0 0 50px rgba(200,255,0,0.6),0 8px 30px rgba(200,255,0,0.25) !important;animation:none !important;}
 .stButton>button:active{transform:scale(0.98) !important;}
 @keyframes ctaPulse{0%,100%{box-shadow:0 0 0 rgba(200,255,0,0);}50%{box-shadow:0 0 38px rgba(200,255,0,0.38);}}
+
+/* ── BACK button override — targets by key using data-testid ── */
+/* Streamlit renders: <div data-testid="stButton"><button>← BACK</button></div> */
+/* We target the button whose text starts with ← via the parent having key=back_btn */
+[data-testid="stButton"]:has(button p:first-child){
+  /* scoping reset — will be overridden below */
+}
+/* Target back button specifically — it lives inside .back-wrap column */
+.back-wrap [data-testid="stButton"]>button,
+.back-wrap .stButton>button{
+  background:transparent !important;
+  color:rgba(244,244,245,0.45) !important;
+  border:1px solid rgba(255,255,255,0.12) !important;
+  border-radius:8px !important;
+  font-family:'DM Mono',monospace !important;
+  font-size:0.65rem !important;
+  letter-spacing:0.16em !important;
+  padding:0.4rem 1rem !important;
+  width:auto !important;
+  min-width:0 !important;
+  animation:none !important;
+  box-shadow:none !important;
+  transition:all 0.2s ease !important;
+}
+.back-wrap [data-testid="stButton"]>button:hover,
+.back-wrap .stButton>button:hover{
+  color:var(--acid) !important;
+  border-color:rgba(200,255,0,0.35) !important;
+  background:rgba(200,255,0,0.04) !important;
+  transform:none !important;
+  box-shadow:none !important;
+}
+.back-wrap{padding:0.8rem 3rem 0;display:flex;justify-content:flex-end;position:relative;z-index:10;}
+.cta-wrap{margin-top:2.5rem;position:relative;z-index:1;}
+.analyse-wrap{position:relative;z-index:1;}
 .sec-header{text-align:center;margin:7rem 0 3.5rem;position:relative;z-index:1;}
 .sec-label{font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.32em;color:var(--acid);text-transform:uppercase;margin-bottom:0.8rem;}
 .sec-title{font-family:'Anton',sans-serif;font-size:clamp(2.5rem,5vw,4rem);letter-spacing:0.01em;color:var(--text);line-height:1;}
@@ -128,8 +200,6 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 .pred-subtitle{font-family:'DM Mono',monospace;font-size:0.56rem;letter-spacing:0.18em;color:var(--muted);text-transform:uppercase;margin-top:3px;}
 .live-dot{width:5px;height:5px;background:var(--acid);border-radius:50%;display:inline-block;box-shadow:0 0 8px var(--acid);animation:pls 1.5s ease-in-out infinite;margin-right:6px;}
 .topbar-tag{font-family:'DM Mono',monospace;font-size:0.55rem;letter-spacing:0.14em;color:rgba(244,244,245,0.2);text-transform:uppercase;}
-.back-wrap button{background:rgba(255,255,255,0.04) !important;color:rgba(244,244,245,0.42) !important;border:1px solid rgba(255,255,255,0.09) !important;border-radius:8px !important;font-family:'DM Mono',monospace !important;font-size:0.65rem !important;letter-spacing:0.14em !important;padding:0.42rem 1rem !important;width:auto !important;animation:none !important;box-shadow:none !important;transition:all 0.2s ease !important;}
-.back-wrap button:hover{color:var(--acid) !important;border-color:rgba(200,255,0,0.3) !important;background:rgba(200,255,0,0.04) !important;transform:none !important;box-shadow:none !important;}
 .selector-zone{padding:2.5rem 4rem 2rem;animation:heroUp 0.6s cubic-bezier(0.16,1,0.3,1) 0.1s both;}
 .section-kicker{font-family:'DM Mono',monospace;font-size:0.58rem;letter-spacing:0.26em;color:var(--acid);text-transform:uppercase;margin-bottom:0.5rem;display:flex;align-items:center;gap:10px;}
 .section-kicker::before{content:'';width:22px;height:1px;background:var(--acid);}
@@ -349,11 +419,13 @@ if st.session_state.page == 'landing':
     </div>
     """, unsafe_allow_html=True)
 
+    st.markdown('<div class="cta-wrap">', unsafe_allow_html=True)
     _, col_c, _ = st.columns([1, 1.4, 1])
     with col_c:
         if st.button("⚡  LAUNCH PREDICTION ENGINE", key="cta_btn"):
             st.session_state.page = 'predict'
             st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
     ticker_items = ["3,800+ matches analysed","XGBoost ensemble","10 seasons of EPL data","219 engineered features","Random Forest stacking","Real-time predictions","Head-to-head patterns","Form streak analysis","Goal difference trends","Confidence-scored signals","AI insider insights","Home/Away splits"]
     ticker_html = ''.join(f'<span class="ticker-item"><span class="ticker-dot"></span>{item}</span>' for item in ticker_items*2)
@@ -439,7 +511,7 @@ elif st.session_state.page == 'predict':
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div class="back-wrap" style="padding:0.9rem 3rem 0;display:flex;justify-content:flex-end;">', unsafe_allow_html=True)
+    st.markdown('<div class="back-wrap">', unsafe_allow_html=True)
     if st.button("← BACK", key="back_btn"):
         st.session_state.page='landing'; st.session_state.result=None; st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
@@ -458,9 +530,11 @@ elif st.session_state.page == 'predict':
             away_team = st.selectbox("✈️  AWAY TEAM", away_opts, key="away_sel")
     st.markdown('</div>', unsafe_allow_html=True)
 
+    st.markdown('<div class="analyse-wrap">', unsafe_allow_html=True)
     _, cta_m, _ = st.columns([2,4,2])
     with cta_m:
         clicked = st.button("⚡  ANALYSE THIS MATCH", key="pred_btn", use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
     if clicked:
         with st.spinner('Running ensemble analysis…'):
