@@ -41,7 +41,7 @@ html, body, .stApp { background: var(--void) !important; color: var(--text); fon
 ::-webkit-scrollbar-track { background: var(--void); }
 ::-webkit-scrollbar-thumb { background: var(--acid); border-radius: 2px; }
 
-/* ──── NOISE LAYER ──── */
+
 body::after {
   content: '';
   position: fixed;
@@ -52,7 +52,6 @@ body::after {
   mix-blend-mode: overlay;
 }
 
-/* ──── SCANLINES ──── */
 body::before {
   content: '';
   position: fixed;
@@ -68,14 +67,17 @@ body::before {
   z-index: 9998;
 }
 
-/* ──── ANIMATED BG ORBS ──── */
-.orb-container { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
-.orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
-  animation: orbFloat var(--dur, 20s) ease-in-out infinite;
+.orb-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;      /* CRITICAL */
+  pointer-events: none;
+  z-index: -2;        /* send fully behind */
+  overflow: hidden;
 }
+
 .orb-1 { width: 700px; height: 700px; top: -20%; left: -15%; background: radial-gradient(circle, rgba(200,255,0,0.09) 0%, transparent 70%); --dur: 18s; }
 .orb-2 { width: 500px; height: 500px; bottom: -15%; right: -10%; background: radial-gradient(circle, rgba(0,229,255,0.07) 0%, transparent 70%); --dur: 23s; animation-delay: -7s; animation-direction: reverse; }
 .orb-3 { width: 400px; height: 400px; top: 40%; left: 50%; background: radial-gradient(circle, rgba(200,255,0,0.04) 0%, transparent 70%); --dur: 30s; animation-delay: -12s; }
@@ -87,26 +89,31 @@ body::before {
   75% { transform: translate(40px, 20px) scale(1.03); }
 }
 
-/* ──── GRID ──── */
 .bg-grid {
-  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;        /* CRITICAL FIX */
+  z-index: -1;          /* send behind everything */
+  pointer-events: none;
+
   background-image:
     linear-gradient(rgba(200,255,0,0.025) 1px, transparent 1px),
     linear-gradient(90deg, rgba(200,255,0,0.025) 1px, transparent 1px);
+
   background-size: 80px 80px;
+
   mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
 }
 
-/* ──── HERO ──── */
 .landing-wrap {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 5rem 2rem 4rem;
-  position: relative;
-  z-index: 1;
+  justify-content: flex-start;   
+  padding-top: 10vh;              
 }
 
 .eyebrow {
@@ -196,7 +203,6 @@ body::before {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* ──── POWER METRICS ──── */
 .metrics-strip {
   display: flex;
   gap: 0;
@@ -245,7 +251,6 @@ body::before {
   margin-top: 6px;
 }
 
-/* ──── CTA BUTTON ──── */
 .cta-section {
   position: relative;
   z-index: 1;
@@ -279,7 +284,6 @@ body::before {
 }
 .stButton > button:active { transform: translateY(0) scale(0.99) !important; }
 
-/* ──── VS COMPARE SECTION ──── */
 .vs-section {
   width: 100%;
   max-width: 860px;
@@ -353,7 +357,6 @@ body::before {
   letter-spacing: 0.4em;
 }
 
-/* ──── FOOTER ──── */
 .landing-footer {
   font-family: 'DM Mono', monospace;
   font-size: 0.58rem;
@@ -368,7 +371,6 @@ body::before {
   z-index: 1;
 }
 
-/* ──── PREDICT PAGE ──── */
 .pred-topbar {
   display: flex;
   align-items: center;
@@ -408,7 +410,6 @@ body::before {
   margin-right: 6px;
 }
 
-/* ──── SELECTOR SECTION ──── */
 .selector-zone {
   padding: 3.5rem 3rem 1.5rem;
   position: relative;
@@ -439,7 +440,6 @@ body::before {
   color: var(--text);
 }
 
-/* ──── STREAMLIT OVERRIDES ──── */
 .stSelectbox > div > div {
   background: var(--surface) !important;
   border: 1px solid var(--border) !important;
@@ -462,7 +462,6 @@ body::before {
   color: var(--muted) !important;
 }
 
-/* ──── RESULT CARD ──── */
 .result-hero {
   background: linear-gradient(135deg, rgba(200,255,0,0.07), rgba(200,255,0,0.02));
   border: 1px solid rgba(200,255,0,0.2);
@@ -525,7 +524,6 @@ body::before {
   z-index: 1;
 }
 
-/* ──── SIGNAL BADGE ──── */
 .signal-badge {
   display: inline-flex;
   align-items: center;
@@ -556,7 +554,6 @@ body::before {
   z-index: 1;
 }
 
-/* ──── PROB CARDS ──── */
 .prob-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -603,7 +600,6 @@ body::before {
   margin-top: 7px;
 }
 
-/* ──── TEAM INTEL CARDS ──── */
 .intel-card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -654,7 +650,6 @@ body::before {
   margin-top: 4px;
 }
 
-/* ──── FORM PILLS ──── */
 .form-row { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 0.5rem; }
 .fp {
   display: inline-flex;
@@ -678,7 +673,6 @@ body::before {
 .fp-D { background: rgba(255,184,0,0.15); color: var(--amber); border: 1px solid rgba(255,184,0,0.25); }
 .fp-L { background: rgba(255,58,58,0.12); color: var(--red); border: 1px solid rgba(255,58,58,0.2); }
 
-/* ──── H2H SECTION ──── */
 .h2h-card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -698,7 +692,6 @@ body::before {
   gap: 10px;
 }
 
-/* ──── INSIDER NOTES ──── */
 .notes-card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -720,7 +713,6 @@ body::before {
 .notes-item:last-child { border-bottom: none; }
 .note-icon { flex-shrink: 0; font-size: 1.05rem; margin-top: 1px; }
 
-/* ──── EXPANDER ──── */
 .streamlit-expanderHeader {
   font-family: 'DM Mono', monospace !important;
   font-size: 0.7rem !important;
@@ -736,7 +728,6 @@ body::before {
   border-top: none !important;
 }
 
-/* ──── BACK BUTTON (override) ──── */
 .back-btn-wrap .stButton > button {
   background: transparent !important;
   color: var(--muted) !important;
@@ -756,10 +747,8 @@ body::before {
   box-shadow: none !important;
 }
 
-/* ──── SPINNER ──── */
 .stSpinner > div { border-top-color: var(--acid) !important; }
 
-/* ──── SECTION SPACER ──── */
 .section-tag {
   font-family: 'DM Mono', monospace;
   font-size: 0.6rem;
@@ -778,7 +767,6 @@ body::before {
   flex-shrink: 0;
 }
 
-/* ──── RESPONSIVE ──── */
 @media (max-width: 768px) {
   .hero-wordmark { font-size: 5rem; }
   .metrics-strip { flex-direction: column; }
@@ -791,7 +779,6 @@ body::before {
   .prob-grid .prob-card:last-child { grid-column: 1/-1; }
 }
 
-/* ──── ANIMATED LINE SEPARATOR ──── */
 .line-sep {
   height: 1px;
   background: linear-gradient(90deg, transparent, rgba(200,255,0,0.3), transparent);
@@ -804,19 +791,111 @@ body::before {
   0%,100% { opacity: 0.4; }
   50% { opacity: 1; }
 }
+
+.pred-topbar {
+  transition: backdrop-filter .4s ease, background .4s ease, border-color .4s ease;
+  background: rgba(5,6,8,0.55) !important;
+  backdrop-filter: blur(26px) saturate(140%);
+  border-bottom: 1px solid rgba(200,255,0,0.08);
+}
+
+.pred-topbar:hover {
+  background: rgba(5,6,8,0.75) !important;
+  border-bottom: 1px solid rgba(200,255,0,0.25);
+}
+
+.stSelectbox:focus-within div[data-baseweb="select"] {
+  box-shadow: 0 0 0 1px rgba(200,255,0,0.6),
+              0 0 22px rgba(200,255,0,0.15);
+  border-color: rgba(200,255,0,0.5) !important;
+  transition: all .2s ease;
+}
+
+@keyframes ctaPulse {
+  0%   { box-shadow: 0 0 0 rgba(200,255,0,0.0); }
+  50%  { box-shadow: 0 0 38px rgba(200,255,0,0.35); }
+  100% { box-shadow: 0 0 0 rgba(200,255,0,0.0); }
+}
+
+.stButton > button {
+  animation: ctaPulse 4s ease-in-out infinite;
+}
+
+.result-hero {
+  animation: resultSlide .6s cubic-bezier(0.16,1,0.3,1);
+}
+
+@keyframes resultSlide {
+  from { opacity:0; transform:translateY(35px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+            
+.result-outcome-text {
+  position: relative;
+  overflow: hidden;
+}
+
+.result-outcome-text::after {
+  content:'';
+  position:absolute;
+  top:0;
+  left:-120%;
+  width:120%;
+  height:100%;
+  background:linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,0.25),
+    transparent
+  );
+  animation: broadcastSweep 1.2s ease forwards;
+}
+
+@keyframes broadcastSweep {
+  to { left:120%; }
+}
+
+
+.result-outcome-text {
+  animation: cinematicReveal .7s cubic-bezier(0.16,1,0.3,1);
+}
+
+@keyframes cinematicReveal {
+  0%   { opacity:0; transform:translateY(40px) scale(.95); filter:blur(6px);}
+  60%  { opacity:1; filter:blur(0);}
+  100% { transform:translateY(0) scale(1);}
+}
+
+.result-hero {
+  transition: background 0.6s ease, box-shadow .6s ease;
+}
+
+.result-hero:hover {
+  box-shadow: 0 0 60px rgba(200,255,0,0.25);
+}
+
+/* Probability hover glow */
+.prob-card:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow:
+    0 0 25px rgba(200,255,0,0.15),
+    inset 0 0 25px rgba(200,255,0,0.05);
+}
+
 </style>
 """, unsafe_allow_html=True)
 
-# ── Model / data loaders ──────────────────────────────────────────────────────
 @st.cache_resource
 def load_models():
     try:
-        xgb = joblib.load('models/xgboost_model.pkl')
-        rf  = joblib.load('models/random_forest_model.pkl')
-        fc  = joblib.load('models/feature_columns.pkl')
+        xgb = joblib.load('models/tuned/xgboost_tuned.pkl')
+        rf  = joblib.load('models/tuned/random_forest_tuned.pkl')
+        fc  = joblib.load('models/tuned/feature_columns.pkl')
         return xgb, rf, fc, True
-    except:
+    except Exception as e:
+        st.error(f"Model load error: {e}")
         return None, None, None, False
+
 
 @st.cache_data
 def load_data():
@@ -828,7 +907,6 @@ def load_data():
     except:
         return None, None, False
 
-# ── Stats helpers ──────────────────────────────────────────────────────────────
 def get_team_form(df, team, n=5):
     home = df[df['HomeTeam']==team][['Date','FTR']].copy()
     home['result'] = home['FTR'].map({'H':'W','D':'D','A':'L'})
@@ -884,7 +962,6 @@ def run_prediction(home, away, xgb, rf, df, fc):
     return {'proba': ens, 'outcome': ['Home Win','Draw','Away Win'][np.argmax(ens)],
             'confidence': ens.max(), 'xgb': xp, 'rf': rp}
 
-# ── HTML helpers ───────────────────────────────────────────────────────────────
 def form_html(form):
     return '<div class="form-row">' + ''.join([
         f'<span class="fp fp-{r}">{r}</span>' for r in form
@@ -922,11 +999,9 @@ def insider_notes(home, away, res, hs, as_, h2h):
     notes.append(("⚠️", "Injuries, suspensions, weather, and referee decisions are NOT factored in. Always apply context before acting."))
     return notes
 
-# ── Session state ──────────────────────────────────────────────────────────────
 if 'page'   not in st.session_state: st.session_state.page   = 'landing'
 if 'result' not in st.session_state: st.session_state.result = None
 
-# ── Always-on bg layers ───────────────────────────────────────────────────────
 st.markdown("""
 <div class="orb-container">
   <div class="orb orb-1"></div>
@@ -939,9 +1014,6 @@ st.markdown("""
 xgb_model, rf_model, feature_cols, models_ok = load_models()
 df, teams, data_ok = load_data()
 
-# ════════════════════════════════════════════════════════════════════════════════
-# LANDING PAGE
-# ════════════════════════════════════════════════════════════════════════════════
 if st.session_state.page == 'landing':
 
     st.markdown('<div class="landing-wrap">', unsafe_allow_html=True)
@@ -960,13 +1032,8 @@ if st.session_state.page == 'landing':
 
     <div class="hero-tagline">Predict the game — before the whistle blows</div>
 
-    <p class="hero-desc">
-      Advanced ensemble ML trained on a decade of Premier League data.
-      Not just predictions — machine-grade insights your gut can't compute.
-    </p>
     """, unsafe_allow_html=True)
 
-    # Power metrics strip
     st.markdown("""
     <div class="metrics-strip" style="max-width:700px;margin-left:auto;margin-right:auto;margin-top:4rem;margin-bottom:3.5rem;">
       <div class="metric-block" style="text-align:center;">
@@ -994,7 +1061,6 @@ if st.session_state.page == 'landing':
             st.session_state.page = 'predict'
             st.rerun()
 
-    # VS comparison
     st.markdown("""
     <div class="vs-section" style="margin-top:5rem;">
       <div class="vs-heading">WHY KICKIQ HITS DIFFERENT</div>
@@ -1013,7 +1079,7 @@ if st.session_state.page == 'landing':
         </div>
         <div class="compare-divider"><div class="vs-pill">VS</div></div>
         <div class="compare-col">
-          <div class="compare-col-label" style="color:rgba(244,244,245,0.3);">👴 Other Predictors</div>
+          <div class="compare-col-label" style="color:rgba(244,244,245,0.3);"> Other Predictors</div>
           <div class="compare-row"><span class="c-cross">✗</span> Single model only</div>
           <div class="compare-row"><span class="c-cross">✗</span> Only recent form</div>
           <div class="compare-row"><span class="c-cross">✗</span> No ensemble stacking</div>
@@ -1033,17 +1099,14 @@ if st.session_state.page == 'landing':
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown('</div>', unsafe_allow_html=True)  # landing-wrap
+    st.markdown('</div>', unsafe_allow_html=True)  
 
 elif st.session_state.page == 'predict':
 
     if not models_ok or not data_ok:
-        st.error("⚠️ Run `python src/train_models.py` first to generate models & features.")
+        st.error(" Run `python src/train_models.py` first to generate models & features.")
         st.stop()
 
-    # ─────────────────────────────────────────
-    # TOP BAR (Cleaner hierarchy + spacing)
-    # ─────────────────────────────────────────
     st.markdown("""
     <div class="pred-topbar">
       <div>
@@ -1058,9 +1121,7 @@ elif st.session_state.page == 'predict':
     </div>
     """, unsafe_allow_html=True)
 
-    # ─────────────────────────────────────────
-    # BACK BUTTON — FIXED UX FLOW
-    # ─────────────────────────────────────────
+    
     back_col1, back_col2 = st.columns([8,2])
     with back_col2:
         if st.button("← BACK", key="back_btn"):
@@ -1068,9 +1129,7 @@ elif st.session_state.page == 'predict':
             st.session_state.result = None
             st.rerun()
 
-    # ─────────────────────────────────────────
-    # MATCH SELECTOR (CENTERED + BALANCED)
-    # ─────────────────────────────────────────
+   
     st.markdown('<div class="selector-zone">', unsafe_allow_html=True)
 
     st.markdown("""
@@ -1103,9 +1162,7 @@ elif st.session_state.page == 'predict':
 
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # ─────────────────────────────────────────
-    # PRIMARY CTA — VISUAL DOMINANCE IMPROVED
-    # ─────────────────────────────────────────
+    
     cta_l, cta_m, cta_r = st.columns([2,4,2])
 
     with cta_m:
@@ -1125,8 +1182,9 @@ elif st.session_state.page == 'predict':
                 df,
                 feature_cols
             )
-            
+
     if st.session_state.result:
+        
         res = st.session_state.result
         hs  = get_team_stats(df, home_team)
         as_ = get_team_stats(df, away_team)
@@ -1137,7 +1195,6 @@ elif st.session_state.page == 'predict':
         pad = '<div style="padding:0 3rem 5rem;position:relative;z-index:1;">'
         st.markdown(pad, unsafe_allow_html=True)
 
-        # ── Outcome card ──
         st.markdown(f"""
         <div class="result-hero">
           <div class="result-eyebrow">{home_team.upper()} vs {away_team.upper()} · {datetime.now().strftime('%d %B %Y').upper()}</div>
@@ -1148,7 +1205,6 @@ elif st.session_state.page == 'predict':
         </div>
         """, unsafe_allow_html=True)
 
-        # ── Probability breakdown ──
         st.markdown('<div class="section-tag" style="margin-top:2rem;">PROBABILITY BREAKDOWN</div>', unsafe_allow_html=True)
 
         ha = "active" if res['outcome']=='Home Win' else ""
@@ -1172,7 +1228,6 @@ elif st.session_state.page == 'predict':
         </div>
         """, unsafe_allow_html=True)
 
-        # ── Plotly chart ──
         winner_idx = int(np.argmax(res['proba']))
         bar_colors = [
             'rgba(200,255,0,0.85)' if i==winner_idx else 'rgba(255,255,255,0.06)'
@@ -1204,7 +1259,6 @@ elif st.session_state.page == 'predict':
         )
         st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
 
-        # ── Team intelligence ──
         st.markdown('<div class="line-sep"></div>', unsafe_allow_html=True)
         st.markdown('<div class="section-tag">TEAM INTELLIGENCE</div>', unsafe_allow_html=True)
 
@@ -1287,7 +1341,6 @@ elif st.session_state.page == 'predict':
             </div>
             """, unsafe_allow_html=True)
 
-        # ── H2H ──
         if h2h:
             st.markdown('<div class="section-tag" style="margin-top:1.5rem;">HEAD TO HEAD</div>', unsafe_allow_html=True)
             st.markdown(f"""
@@ -1301,7 +1354,6 @@ elif st.session_state.page == 'predict':
             </div>
             """, unsafe_allow_html=True)
 
-        # ── Insider intel ──
         st.markdown('<div class="section-tag" style="margin-top:0.5rem;">INSIDER INTEL</div>', unsafe_allow_html=True)
         notes = insider_notes(home_team, away_team, res, hs, as_, h2h)
         notes_html = ''.join([
@@ -1315,7 +1367,6 @@ elif st.session_state.page == 'predict':
         </div>
         """, unsafe_allow_html=True)
 
-        # ── Model internals ──
         with st.expander("🔬  MODEL INTERNALS — XGBoost vs Random Forest"):
             c1, c2 = st.columns(2)
             with c1:
