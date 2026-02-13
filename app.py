@@ -8,8 +8,6 @@ from datetime import datetime
 
 st.set_page_config(page_title="KICKIQ · EPL Predictor", page_icon="⚡", layout="wide", initial_sidebar_state="collapsed")
 
-# ── GUARANTEED PADDING KILLER ─────────────────────────────────────────────────
-# components.v1.html runs in real document context (not sandboxed)
 components.html("""<script>
 (function(){
   function nuke(){
@@ -25,7 +23,6 @@ components.html("""<script>
         el.style.setProperty('max-width','100%','important');
       });
     });
-    // Find the BACK button by text and force ghost style directly on the element
     document.querySelectorAll('button').forEach(function(btn){
       var txt = btn.innerText || btn.textContent || '';
       if(txt.trim().startsWith('\u2190') || txt.trim() === '\u2190 BACK'){
@@ -80,7 +77,6 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 @keyframes orbFloat{0%,100%{transform:translate(0,0) scale(1);}33%{transform:translate(25px,-35px) scale(1.04);}66%{transform:translate(-18px,28px) scale(0.96);}}
 .bg-grid{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:-1;pointer-events:none;background-image:linear-gradient(rgba(200,255,0,0.022) 1px,transparent 1px),linear-gradient(90deg,rgba(200,255,0,0.022) 1px,transparent 1px);background-size:80px 80px;mask-image:radial-gradient(ellipse 75% 75% at 50% 50%,black 25%,transparent 100%);}
 
-/* ═══ LANDING ═══ */
 .landing-wrap{width:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:5vh 2rem 0;position:relative;z-index:1;}
 .eyebrow{display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,rgba(200,255,0,0.08),rgba(200,255,0,0.02));border:1px solid rgba(200,255,0,0.2);border-radius:100px;padding:6px 18px 6px 10px;font-family:'DM Mono',monospace;font-size:0.66rem;letter-spacing:0.18em;color:var(--acid);text-transform:uppercase;margin-bottom:2rem;animation:fadeDown 0.6s cubic-bezier(0.16,1,0.3,1) 0.05s both;}
 .eyebrow-pulse{width:7px;height:7px;background:var(--acid);border-radius:50%;animation:pls 1.8s ease-in-out infinite;box-shadow:0 0 8px var(--acid);}
@@ -101,7 +97,6 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 .metric-block:nth-child(1) .metric-val{animation-delay:0.55s;}.metric-block:nth-child(2) .metric-val{animation-delay:0.67s;}.metric-block:nth-child(3) .metric-val{animation-delay:0.79s;}.metric-block:nth-child(4) .metric-val{animation-delay:0.91s;}
 @keyframes metricPop{0%{opacity:0;transform:scale(0.55);}65%{transform:scale(1.12);opacity:1;}100%{transform:scale(1);}}
 .metric-lbl{font-family:'DM Mono',monospace;font-size:0.58rem;letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;margin-top:5px;}
-/* ── ALL buttons default: big green acid style ── */
 .stButton>button{
   background:var(--acid) !important;color:#050608 !important;border:none !important;
   border-radius:12px !important;font-family:'Anton',sans-serif !important;
@@ -114,13 +109,11 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 .stButton>button:active{transform:scale(0.98) !important;}
 @keyframes ctaPulse{0%,100%{box-shadow:0 0 0 rgba(200,255,0,0);}50%{box-shadow:0 0 38px rgba(200,255,0,0.38);}}
 
-/* ── BACK button override — targets by key using data-testid ── */
 /* Streamlit renders: <div data-testid="stButton"><button>← BACK</button></div> */
 /* We target the button whose text starts with ← via the parent having key=back_btn */
 [data-testid="stButton"]:has(button p:first-child){
   /* scoping reset — will be overridden below */
 }
-/* Target back button specifically — it lives inside .back-wrap column */
 .back-wrap [data-testid="stButton"]>button,
 .back-wrap .stButton>button{
   background:transparent !important;
@@ -192,7 +185,6 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 .landing-footer{font-family:'DM Mono',monospace;font-size:0.56rem;letter-spacing:0.12em;color:rgba(244,244,245,0.16);text-align:center;text-transform:uppercase;margin-top:6rem;padding-bottom:4rem;line-height:2.4;position:relative;z-index:1;}
 .footer-line{height:1px;background:linear-gradient(90deg,transparent,rgba(200,255,0,0.15),transparent);margin:3rem auto 2.5rem;max-width:600px;}
 
-/* ═══ PREDICT PAGE ═══ */
 .pred-topbar{display:flex;align-items:center;justify-content:space-between;padding:1.2rem 3rem;border-bottom:1px solid rgba(200,255,0,0.07);position:sticky;top:0;z-index:200;background:rgba(5,6,8,0.65);backdrop-filter:blur(22px) saturate(160%);animation:topbarDrop 0.5s cubic-bezier(0.16,1,0.3,1) both;}
 @keyframes topbarDrop{from{opacity:0;transform:translateY(-100%);}to{opacity:1;transform:translateY(0);}}
 .pred-logo-text{font-family:'Anton',sans-serif;font-size:1.65rem;letter-spacing:0.04em;color:var(--text);line-height:1;}
@@ -277,7 +269,6 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 </style>
 """, unsafe_allow_html=True)
 
-# ─── HELPERS ──────────────────────────────────────────────────────────────────
 @st.cache_resource
 def load_models():
     try:
@@ -486,6 +477,70 @@ if st.session_state.page == 'landing':
         </div>
       </div>
     </div>
+
+    <!-- FEATURE BREAKDOWN -->
+    <div class="sec-header">
+      <div class="sec-label">UNDER THE HOOD</div>
+      <div class="sec-title">KEY FEATURE CATEGORIES</div>
+      <div class="sec-sub">What the models actually see</div>
+    </div>
+    <div class="feat-grid">
+      <div class="feat-card">
+        <div class="feat-icon">📈</div>
+        <div class="feat-title">FORM &amp; MOMENTUM</div>
+        <div class="feat-desc">Rolling win/loss/draw rates, goal-scoring streaks, consecutive clean sheets, points-per-game over 5, 10, and 20-match windows.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">⚔️</div>
+        <div class="feat-title">HEAD TO HEAD</div>
+        <div class="feat-desc">Historical H2H win ratios, average goals in H2H meetings, home vs away performance in direct encounters, recency-weighted.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🏠</div>
+        <div class="feat-title">VENUE SPLITS</div>
+        <div class="feat-desc">Separate home and away form, goals scored and conceded at each venue, clean sheet rates home vs away.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">⚽</div>
+        <div class="feat-title">GOAL PATTERNS</div>
+        <div class="feat-desc">Average goals scored and conceded, BTTS rates, over/under 2.5 tendencies, first/second half goal split percentages.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🎯</div>
+        <div class="feat-title">ATTACK VS DEFENCE</div>
+        <div class="feat-desc">Offensive rating vs opposition defensive rating matchup, goal difference per window, xG proxies from historical shot data.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">📅</div>
+        <div class="feat-title">TEMPORAL FEATURES</div>
+        <div class="feat-desc">Seasonal position, fatigue proxies from fixture congestion, early vs late season trends, promotion/relegation pressure indicators.</div>
+      </div>
+    </div>
+
+    <!-- FAQ -->
+    <div class="sec-header" style="margin-top:6rem;">
+      <div class="sec-label">COMMON QUESTIONS</div>
+      <div class="sec-title">FAQ</div>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item">
+        <div class="faq-q">How accurate is KICKIQ?</div>
+        <div class="faq-a">The ensemble model achieves ~68% accuracy on out-of-sample test data — significantly above the ~46% baseline of always predicting the majority class (home win). Football is inherently unpredictable; this tool provides probabilistic guidance, not certainty.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">What data does it use?</div>
+        <div class="faq-a">10 seasons of English Premier League match data including results, goals scored/conceded, and engineered form features. Data is from publicly available football statistics sources.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Does it factor in injuries or suspensions?</div>
+        <div class="faq-a">No. The model uses purely historical statistical patterns. Injuries, suspensions, weather conditions, referee tendencies, and team news are NOT modelled. Always apply contextual knowledge before acting on predictions.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Can I use this for betting?</div>
+        <div class="faq-a">KICKIQ is for entertainment purposes only. It does not constitute financial or betting advice. Gambling carries significant financial risk. Please gamble responsibly and within your means.</div>
+      </div>
+    </div>
+
     <div class="footer-line"></div>
     <div class="landing-footer">
       Built with XGBoost · scikit-learn · Streamlit · 2024/25 EPL Data<br>
@@ -496,9 +551,6 @@ if st.session_state.page == 'landing':
 
     st.markdown('</div>', unsafe_allow_html=True)
 
-# ═══════════════════════════════════════════════════════════
-#  PREDICT PAGE
-# ═══════════════════════════════════════════════════════════
 elif st.session_state.page == 'predict':
     if not models_ok or not data_ok:
         st.error("Run `python src/train_models.py` first to generate models & features.")
@@ -521,13 +573,13 @@ elif st.session_state.page == 'predict':
     _, center_area, _ = st.columns([1,7,1])
     with center_area:
         c1, c2, c3 = st.columns([5,1,5])
-        with c1: home_team = st.selectbox("🏠  HOME TEAM", teams, key="home_sel")
+        with c1: home_team = st.selectbox("  HOME TEAM", teams, key="home_sel")
         with c2:
             st.markdown("<div style='height:44px'></div>", unsafe_allow_html=True)
             st.markdown("<div style='text-align:center;padding-top:6px;'><span style=\"font-family:'Anton';font-size:1.8rem;color:rgba(244,244,245,0.1);\">VS</span></div>", unsafe_allow_html=True)
         with c3:
             away_opts = [t for t in teams if t!=home_team]
-            away_team = st.selectbox("✈️  AWAY TEAM", away_opts, key="away_sel")
+            away_team = st.selectbox(" AWAY TEAM", away_opts, key="away_sel")
     st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown('<div class="analyse-wrap">', unsafe_allow_html=True)
@@ -580,7 +632,7 @@ elif st.session_state.page == 'predict':
         with col1:
             st.markdown(f"""
             <div class="intel-card">
-              <div class="intel-card-kicker">🏠 {home_team.upper()} · RECENT FORM</div>
+              <div class="intel-card-kicker"> {home_team.upper()} · RECENT FORM</div>
               <div class="intel-metrics">
                 <div class="intel-metric"><div class="intel-metric-val">{hs['wins']}</div><div class="intel-metric-lbl">Wins</div></div>
                 <div class="intel-metric"><div class="intel-metric-val">{hs['draws']}</div><div class="intel-metric-lbl">Draws</div></div>
@@ -599,7 +651,7 @@ elif st.session_state.page == 'predict':
         with col2:
             st.markdown(f"""
             <div class="intel-card">
-              <div class="intel-card-kicker">✈️ {away_team.upper()} · RECENT FORM</div>
+              <div class="intel-card-kicker"> {away_team.upper()} · RECENT FORM</div>
               <div class="intel-metrics">
                 <div class="intel-metric"><div class="intel-metric-val">{as_['wins']}</div><div class="intel-metric-lbl">Wins</div></div>
                 <div class="intel-metric"><div class="intel-metric-val">{as_['draws']}</div><div class="intel-metric-lbl">Draws</div></div>
@@ -627,10 +679,10 @@ elif st.session_state.page == 'predict':
         <div class="extra-insight">
           <div class="intel-card-kicker">🔭 PROJECTED SCORING BREAKDOWN</div>
           <div class="insight-row">
-            <div class="insight-item"><div class="insight-item-label">🏠 {home_team} Avg Scored</div><div class="insight-item-val {h_cls}">{home_avg_scored} per game</div></div>
-            <div class="insight-item"><div class="insight-item-label">✈️ {away_team} Avg Scored</div><div class="insight-item-val {a_cls}">{away_avg_scored} per game</div></div>
-            <div class="insight-item"><div class="insight-item-label">🏠 {home_team} Proj Goals</div><div class="insight-item-val {h_exp_cls}">{exp_home}</div></div>
-            <div class="insight-item"><div class="insight-item-label">✈️ {away_team} Proj Goals</div><div class="insight-item-val {a_exp_cls}">{exp_away}</div></div>
+            <div class="insight-item"><div class="insight-item-label"> {home_team} Avg Scored</div><div class="insight-item-val {h_cls}">{home_avg_scored} per game</div></div>
+            <div class="insight-item"><div class="insight-item-label"> {away_team} Avg Scored</div><div class="insight-item-val {a_cls}">{away_avg_scored} per game</div></div>
+            <div class="insight-item"><div class="insight-item-label"> {home_team} Proj Goals</div><div class="insight-item-val {h_exp_cls}">{exp_home}</div></div>
+            <div class="insight-item"><div class="insight-item-label"> {away_team} Proj Goals</div><div class="insight-item-val {a_exp_cls}">{exp_away}</div></div>
           </div>
         </div>""", unsafe_allow_html=True)
 
@@ -638,9 +690,9 @@ elif st.session_state.page == 'predict':
             st.markdown('<div class="section-tag" style="margin-top:0.5rem;">HEAD TO HEAD</div>', unsafe_allow_html=True)
             st.markdown(f"""
             <div class="h2h-card">
-              <div class="intel-card-kicker">⚔️ LAST {len(h2h)} MEETINGS · {home_team.upper()} PERSPECTIVE</div>
+              <div class="intel-card-kicker"> LAST {len(h2h)} MEETINGS · {home_team.upper()} PERSPECTIVE</div>
               {form_html(h2h)}
-              <div class="h2h-stat"><span>📊</span><span>{home_team} won {h2h.count('W')}, drew {h2h.count('D')}, lost {h2h.count('L')} of last {len(h2h)} meetings against {away_team}.</span></div>
+              <div class="h2h-stat"><span></span><span>{home_team} won {h2h.count('W')}, drew {h2h.count('D')}, lost {h2h.count('L')} of last {len(h2h)} meetings against {away_team}.</span></div>
             </div>""", unsafe_allow_html=True)
 
         st.markdown('<div class="section-tag" style="margin-top:0.5rem;">INSIDER INTEL</div>', unsafe_allow_html=True)
@@ -648,11 +700,11 @@ elif st.session_state.page == 'predict':
         notes_html=''.join(f'<div class="notes-item"><span class="note-icon">{ic}</span><span>{tx}</span></div>' for ic,tx in notes)
         st.markdown(f"""
         <div class="notes-card">
-          <div class="intel-card-kicker">🤖 AI ANALYSIS · {home_team.upper()} vs {away_team.upper()}</div>
+          <div class="intel-card-kicker"> AI ANALYSIS · {home_team.upper()} vs {away_team.upper()}</div>
           {notes_html}
         </div>""", unsafe_allow_html=True)
 
-        with st.expander("🔬  MODEL INTERNALS — XGBoost vs Random Forest"):
+        with st.expander("  MODEL INTERNALS — XGBoost vs Random Forest"):
             c1,c2=st.columns(2)
             with c1:
                 st.markdown("**XGBoost (60% weight)**")
