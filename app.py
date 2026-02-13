@@ -8,8 +8,6 @@ from datetime import datetime
 
 st.set_page_config(page_title="KICKIQ · EPL Predictor", page_icon="⚡", layout="wide", initial_sidebar_state="collapsed")
 
-# ── GUARANTEED PADDING KILLER ─────────────────────────────────────────────────
-# components.v1.html runs in real document context (not sandboxed)
 components.html("""<script>
 (function(){
   function nuke(){
@@ -59,7 +57,6 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 @keyframes orbFloat{0%,100%{transform:translate(0,0) scale(1);}33%{transform:translate(25px,-35px) scale(1.04);}66%{transform:translate(-18px,28px) scale(0.96);}}
 .bg-grid{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:-1;pointer-events:none;background-image:linear-gradient(rgba(200,255,0,0.022) 1px,transparent 1px),linear-gradient(90deg,rgba(200,255,0,0.022) 1px,transparent 1px);background-size:80px 80px;mask-image:radial-gradient(ellipse 75% 75% at 50% 50%,black 25%,transparent 100%);}
 
-/* ═══ LANDING ═══ */
 .landing-wrap{width:100vw;max-width:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:5vh 2rem 0;position:relative;z-index:1;box-sizing:border-box;}
 .landing-wrap > *{width:100%;max-width:860px;margin-left:auto;margin-right:auto;}
 .eyebrow{display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,rgba(200,255,0,0.08),rgba(200,255,0,0.02));border:1px solid rgba(200,255,0,0.2);border-radius:100px;padding:6px 18px 6px 10px;font-family:'DM Mono',monospace;font-size:0.66rem;letter-spacing:0.18em;color:var(--acid);text-transform:uppercase;margin-bottom:2rem;animation:fadeDown 0.6s cubic-bezier(0.16,1,0.3,1) 0.05s both;}
@@ -81,7 +78,7 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 .metric-block:nth-child(1) .metric-val{animation-delay:0.55s;}.metric-block:nth-child(2) .metric-val{animation-delay:0.67s;}.metric-block:nth-child(3) .metric-val{animation-delay:0.79s;}.metric-block:nth-child(4) .metric-val{animation-delay:0.91s;}
 @keyframes metricPop{0%{opacity:0;transform:scale(0.55);}65%{transform:scale(1.12);opacity:1;}100%{transform:scale(1);}}
 .metric-lbl{font-family:'DM Mono',monospace;font-size:0.58rem;letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;margin-top:5px;}
-/* ── ALL buttons default: big green acid style ── */
+
 .stButton>button{
   background:var(--acid) !important;color:#050608 !important;border:none !important;
   border-radius:12px !important;font-family:'Anton',sans-serif !important;
@@ -94,9 +91,6 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 .stButton>button:active{transform:scale(0.98) !important;}
 @keyframes ctaPulse{0%,100%{box-shadow:0 0 0 rgba(200,255,0,0);}50%{box-shadow:0 0 38px rgba(200,255,0,0.38);}}
 
-/* ── BACK button override — targets by key using data-testid ── */
-/* Streamlit renders: <div data-testid="stButton"><button>← BACK</button></div> */
-/* We target the button whose text starts with ← via the parent having key=back_btn */
 .cta-wrap{margin-top:2.5rem;position:relative;z-index:1;}
 .sec-header{text-align:center;margin:7rem 0 3.5rem;position:relative;z-index:1;}
 .sec-label{font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.32em;color:var(--acid);text-transform:uppercase;margin-bottom:0.8rem;}
@@ -141,7 +135,7 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 .vs-pill{font-family:'Anton',sans-serif;font-size:0.95rem;color:rgba(255,255,255,0.08);writing-mode:vertical-rl;letter-spacing:0.5em;}
 .landing-footer{font-family:'DM Mono',monospace;font-size:0.56rem;letter-spacing:0.12em;color:rgba(244,244,245,0.16);text-align:center;text-transform:uppercase;margin-top:6rem;padding-bottom:4rem;line-height:2.4;position:relative;z-index:1;}
 .footer-line{height:1px;background:linear-gradient(90deg,transparent,rgba(200,255,0,0.15),transparent);margin:3rem auto 2.5rem;max-width:600px;}
-/* ── Feature grid ── */
+
 .feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;width:100%;max-width:900px;margin:0 auto;position:relative;z-index:1;}
 .feat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.6rem 1.5rem;transition:border-color 0.3s,transform 0.3s;animation:revealUp 0.5s cubic-bezier(0.16,1,0.3,1) both;}
 .feat-card:nth-child(1){animation-delay:0.05s;}.feat-card:nth-child(2){animation-delay:0.12s;}.feat-card:nth-child(3){animation-delay:0.19s;}.feat-card:nth-child(4){animation-delay:0.26s;}.feat-card:nth-child(5){animation-delay:0.33s;}.feat-card:nth-child(6){animation-delay:0.40s;}
@@ -149,7 +143,7 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 .feat-icon{font-size:1.6rem;margin-bottom:0.8rem;}
 .feat-title{font-family:'Anton',sans-serif;font-size:1rem;letter-spacing:0.05em;color:var(--text);margin-bottom:0.5rem;}
 .feat-desc{font-family:'Rajdhani',sans-serif;font-size:0.88rem;font-weight:400;color:var(--muted);line-height:1.55;}
-/* ── FAQ ── */
+
 .faq-list{width:100%;max-width:760px;margin:0 auto;position:relative;z-index:1;}
 .faq-item{border-bottom:1px solid rgba(255,255,255,0.05);padding:1.6rem 0;animation:revealUp 0.5s cubic-bezier(0.16,1,0.3,1) both;}
 .faq-item:nth-child(1){animation-delay:0.05s;}.faq-item:nth-child(2){animation-delay:0.15s;}.faq-item:nth-child(3){animation-delay:0.25s;}.faq-item:nth-child(4){animation-delay:0.35s;}
@@ -158,7 +152,6 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 .faq-q::before{content:'';width:4px;height:1.1rem;background:var(--acid);border-radius:2px;flex-shrink:0;}
 .faq-a{font-family:'Rajdhani',sans-serif;font-size:0.95rem;font-weight:400;color:var(--muted);line-height:1.65;padding-left:14px;}
 
-/* ═══ PREDICT PAGE ═══ */
 .pred-topbar{display:flex;align-items:center;justify-content:space-between;padding:1.2rem 3rem;border-bottom:1px solid rgba(200,255,0,0.07);position:sticky;top:0;z-index:200;background:rgba(5,6,8,0.72);backdrop-filter:blur(22px) saturate(160%);width:100%;animation:topbarDrop 0.5s cubic-bezier(0.16,1,0.3,1) both;}
 @keyframes topbarDrop{from{opacity:0;transform:translateY(-100%);}to{opacity:1;transform:translateY(0);}}
 .pred-logo-text{font-family:'Anton',sans-serif;font-size:1.65rem;letter-spacing:0.04em;color:var(--text);line-height:1;}
@@ -166,7 +159,7 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 .pred-subtitle{font-family:'DM Mono',monospace;font-size:0.56rem;letter-spacing:0.18em;color:var(--muted);text-transform:uppercase;margin-top:3px;}
 .live-dot{width:5px;height:5px;background:var(--acid);border-radius:50%;display:inline-block;box-shadow:0 0 8px var(--acid);animation:pls 1.5s ease-in-out infinite;margin-right:6px;}
 .topbar-tag{font-family:'DM Mono',monospace;font-size:0.55rem;letter-spacing:0.14em;color:rgba(244,244,245,0.2);text-transform:uppercase;}
-/* Selector zone */
+
 .selector-zone{padding:3rem 2rem 1.5rem;width:100%;animation:heroUp 0.6s cubic-bezier(0.16,1,0.3,1) 0.1s both;}
 .stSelectbox>div>div{background:var(--surface) !important;border:1px solid rgba(255,255,255,0.09) !important;border-radius:10px !important;color:var(--text) !important;font-family:'Rajdhani',sans-serif !important;font-size:1.05rem !important;font-weight:600 !important;transition:all .2s ease !important;}
 .stSelectbox>div>div:hover{border-color:rgba(200,255,0,0.38) !important;}
@@ -241,7 +234,6 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 </style>
 """, unsafe_allow_html=True)
 
-# ─── HELPERS ──────────────────────────────────────────────────────────────────
 @st.cache_resource
 def load_models():
     try:
@@ -322,35 +314,34 @@ def form_html(form):
     return '<div class="form-row">'+''.join(f'<span class="fp fp-{r}">{r}</span>' for r in form)+'</div>'
 
 def signal_badge_html(conf):
-    if conf>=0.65: return '<div class="signal-badge s-strong">⚡ STRONG SIGNAL</div>'
-    elif conf>=0.55: return '<div class="signal-badge s-mod">◈ MODERATE SIGNAL</div>'
-    elif conf>=0.45: return '<div class="signal-badge s-weak">⚠ WEAK SIGNAL</div>'
+    if conf>=0.65: return '<div class="signal-badge s-strong"> STRONG SIGNAL</div>'
+    elif conf>=0.55: return '<div class="signal-badge s-mod"> MODERATE SIGNAL</div>'
+    elif conf>=0.45: return '<div class="signal-badge s-weak"> WEAK SIGNAL</div>'
     else: return '<div class="signal-badge s-none">✕ NO CLEAR EDGE</div>'
 
 def insider_notes(home, away, res, hs, as_, h2h):
     notes = []
     idx = np.argmax(res['proba'])
-    notes.append(("🤖", f"Ensemble: XGBoost ({res['xgb'][idx]*100:.0f}%) + Random Forest ({res['rf'][idx]*100:.0f}%) weighted 60/40."))
-    if res['confidence']>0.60: notes.append(("🔥", f"High conviction — {res['outcome']} is the dominant call across both models."))
-    else: notes.append(("🌊", "Probabilities are spread — contested fixture, upsets very possible."))
+    notes.append(("", f"Ensemble: XGBoost ({res['xgb'][idx]*100:.0f}%) + Random Forest ({res['rf'][idx]*100:.0f}%) weighted 60/40."))
+    if res['confidence']>0.60: notes.append(("", f"High conviction — {res['outcome']} is the dominant call across both models."))
+    else: notes.append(("", "Probabilities are spread — contested fixture, upsets very possible."))
     gd_diff = hs['gd']-as_['gd']
     if abs(gd_diff)>8:
         better = home if gd_diff>0 else away
         notes.append(("📈", f"{better} hold significantly stronger goal difference — superior attacking & defensive quality."))
-    if hs['win_rate']>60: notes.append(("🏠", f"{home} winning {hs['win_rate']}% of recent matches — elite home form."))
-    if as_['win_rate']>60: notes.append(("✈️", f"{away} carry {as_['win_rate']}% win rate — dangerous regardless of venue."))
-    if hs['clean_sheets']>=5: notes.append(("🧤", f"{home} kept {hs['clean_sheets']} clean sheets recently — rock-solid defensive unit."))
-    if as_['clean_sheets']>=5: notes.append(("🛡️", f"{away} boast {as_['clean_sheets']} clean sheets — expect a tight game."))
+    if hs['win_rate']>60: notes.append(("", f"{home} winning {hs['win_rate']}% of recent matches — elite home form."))
+    if as_['win_rate']>60: notes.append(("", f"{away} carry {as_['win_rate']}% win rate — dangerous regardless of venue."))
+    if hs['clean_sheets']>=5: notes.append(("", f"{home} kept {hs['clean_sheets']} clean sheets recently — rock-solid defensive unit."))
+    if as_['clean_sheets']>=5: notes.append(("", f"{away} boast {as_['clean_sheets']} clean sheets — expect a tight game."))
     if h2h:
         hw=h2h.count('W'); hd=h2h.count('D'); hl=h2h.count('L')
         verdict = 'History favours the home side.' if hw>hl else 'Away side historically dominant.' if hl>hw else 'Historically level — anyone can win.'
         notes.append(("⚔️", f"H2H ({home}): {hw}W · {hd}D · {hl}L from last {len(h2h)} meetings. {verdict}"))
-    if res['proba'][1]>0.30: notes.append(("🤝", f"Draw probability at {res['proba'][1]*100:.0f}% — cagey, tactical fixture expected."))
+    if res['proba'][1]>0.30: notes.append(("", f"Draw probability at {res['proba'][1]*100:.0f}% — cagey, tactical fixture expected."))
     if hs['btts']>=6 and as_['btts']>=6: notes.append(("⚽", f"Both teams to score is very likely — both sides have featured in high-scoring games recently."))
-    notes.append(("⚠️", "Injuries, suspensions, weather & referee tendencies are NOT modelled. Always contextualise."))
+    notes.append(("", "Injuries, suspensions, weather & referee tendencies are NOT modelled. Always contextualise."))
     return notes
 
-# ─── STATE + BACKGROUND ───────────────────────────────────────────────────────
 if 'page'   not in st.session_state: st.session_state.page   = 'landing'
 if 'result' not in st.session_state: st.session_state.result = None
 
@@ -362,9 +353,6 @@ st.markdown("""
 xgb_model, rf_model, feature_cols, models_ok = load_models()
 df, teams, data_ok = load_data()
 
-# ═══════════════════════════════════════════════════════════
-#  LANDING PAGE
-# ═══════════════════════════════════════════════════════════
 if st.session_state.page == 'landing':
     st.markdown('<div class="landing-wrap">', unsafe_allow_html=True)
 
@@ -386,7 +374,7 @@ if st.session_state.page == 'landing':
     st.markdown('<div class="cta-wrap">', unsafe_allow_html=True)
     _, col_c, _ = st.columns([1, 1.4, 1])
     with col_c:
-        if st.button("⚡  LAUNCH PREDICTION ENGINE", key="cta_btn"):
+        if st.button(" LAUNCH PREDICTION ENGINE", key="cta_btn"):
             st.session_state.page = 'predict'
             st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
@@ -402,9 +390,9 @@ if st.session_state.page == 'landing':
       <div class="sec-sub">Three steps from selection to prediction</div>
     </div>
     <div class="hiw-grid">
-      <div class="hiw-card"><div class="hiw-num">01</div><div class="hiw-icon">🎯</div><div class="hiw-title">SELECT MATCH</div><div class="hiw-desc">Choose any home and away team from the current EPL roster. KICKIQ covers all 20 Premier League clubs.</div></div>
-      <div class="hiw-card"><div class="hiw-num">02</div><div class="hiw-icon">⚙️</div><div class="hiw-title">ENSEMBLE RUNS</div><div class="hiw-desc">XGBoost and Random Forest models process 219 features — form, goal difference, H2H history, home/away splits — weighted 60/40.</div></div>
-      <div class="hiw-card"><div class="hiw-num">03</div><div class="hiw-icon">📊</div><div class="hiw-title">GET INSIGHTS</div><div class="hiw-desc">Receive outcome probabilities, confidence scoring, team intelligence, H2H analysis, projected goals, and AI-generated insider context.</div></div>
+      <div class="hiw-card"><div class="hiw-num">01</div></div><div class="hiw-title">SELECT MATCH</div><div class="hiw-desc">Choose any home and away team from the current EPL roster. KICKIQ covers all 20 Premier League clubs.</div></div>
+      <div class="hiw-card"><div class="hiw-num">02</div></div><div class="hiw-title">ENSEMBLE RUNS</div><div class="hiw-desc">XGBoost and Random Forest models process 219 features — form, goal difference, H2H history, home/away splits — weighted 60/40.</div></div>
+      <div class="hiw-card"><div class="hiw-num">03</div></div><div class="hiw-title">GET INSIGHTS</div><div class="hiw-desc">Receive outcome probabilities, confidence scoring, team intelligence, H2H analysis, projected goals, and AI-generated insider context.</div></div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -424,7 +412,7 @@ if st.session_state.page == 'landing':
       </div>
       <div class="compare-grid">
         <div class="compare-col ours">
-          <div class="compare-col-label">⚡ KICKIQ</div>
+          <div class="compare-col-label"> KICKIQ</div>
           <div class="compare-row"><span class="c-check">✓</span>219 engineered features per match</div>
           <div class="compare-row"><span class="c-check">✓</span>XGBoost + Random Forest ensemble</div>
           <div class="compare-row"><span class="c-check">✓</span>10 years of training data</div>
@@ -459,32 +447,26 @@ if st.session_state.page == 'landing':
     </div>
     <div class="feat-grid">
       <div class="feat-card">
-        <div class="feat-icon">📈</div>
         <div class="feat-title">FORM &amp; MOMENTUM</div>
         <div class="feat-desc">Rolling win/loss/draw rates, goal-scoring streaks, consecutive clean sheets, points-per-game over 5, 10, and 20-match windows.</div>
       </div>
       <div class="feat-card">
-        <div class="feat-icon">⚔️</div>
         <div class="feat-title">HEAD TO HEAD</div>
         <div class="feat-desc">Historical H2H win ratios, average goals in H2H meetings, home vs away performance in direct encounters, recency-weighted.</div>
       </div>
       <div class="feat-card">
-        <div class="feat-icon">🏠</div>
         <div class="feat-title">VENUE SPLITS</div>
         <div class="feat-desc">Separate home and away form, goals scored and conceded at each venue, clean sheet rates home vs away.</div>
       </div>
       <div class="feat-card">
-        <div class="feat-icon">⚽</div>
         <div class="feat-title">GOAL PATTERNS</div>
         <div class="feat-desc">Average goals scored and conceded, BTTS rates, over/under 2.5 tendencies, first/second half goal split percentages.</div>
       </div>
       <div class="feat-card">
-        <div class="feat-icon">🎯</div>
         <div class="feat-title">ATTACK VS DEFENCE</div>
         <div class="feat-desc">Offensive rating vs opposition defensive rating matchup, goal difference per window, xG proxies from historical shot data.</div>
       </div>
       <div class="feat-card">
-        <div class="feat-icon">📅</div>
         <div class="feat-title">TEMPORAL FEATURES</div>
         <div class="feat-desc">Seasonal position, fatigue proxies from fixture congestion, early vs late season trends, promotion/relegation pressure indicators.</div>
       </div>
@@ -518,7 +500,7 @@ if st.session_state.page == 'landing':
     <div class="landing-footer">
       Built with XGBoost · scikit-learn · Streamlit · 2024/25 EPL Data<br>
       Model accuracy based on out-of-sample test set evaluation<br>
-      ⚠ For entertainment purposes only · Not financial advice · Bet responsibly
+       For entertainment purposes only · Not financial advice · Bet responsibly
     </div>
     """, unsafe_allow_html=True)
 
@@ -653,9 +635,9 @@ elif st.session_state.page == 'predict':
         ha="active" if res['outcome']=='Home Win' else ""; da="active" if res['outcome']=='Draw' else ""; aa="active" if res['outcome']=='Away Win' else ""
         st.markdown(f"""
         <div class="prob-grid">
-          <div class="prob-card {ha}"><div class="prob-pct">{res['proba'][0]*100:.0f}%</div><div class="prob-label">🏠 {home_team}</div></div>
-          <div class="prob-card {da}"><div class="prob-pct">{res['proba'][1]*100:.0f}%</div><div class="prob-label">🤝 Draw</div></div>
-          <div class="prob-card {aa}"><div class="prob-pct">{res['proba'][2]*100:.0f}%</div><div class="prob-label">✈️ {away_team}</div></div>
+          <div class="prob-card {ha}"><div class="prob-pct">{res['proba'][0]*100:.0f}%</div><div class="prob-label"> {home_team}</div></div>
+          <div class="prob-card {da}"><div class="prob-pct">{res['proba'][1]*100:.0f}%</div><div class="prob-label"> Draw</div></div>
+          <div class="prob-card {aa}"><div class="prob-pct">{res['proba'][2]*100:.0f}%</div><div class="prob-label"> {away_team}</div></div>
         </div>""", unsafe_allow_html=True)
 
         winner_idx=int(np.argmax(res['proba']))
