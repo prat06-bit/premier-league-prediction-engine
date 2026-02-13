@@ -524,40 +524,109 @@ if st.session_state.page == 'landing':
 
     st.markdown('</div>', unsafe_allow_html=True)
 
+# ═══════════════════════════════════════════════════════════
+#  PREDICT PAGE
+# ═══════════════════════════════════════════════════════════
 elif st.session_state.page == 'predict':
     if not models_ok or not data_ok:
         st.error("Run `python src/train_models.py` first to generate models & features.")
         st.stop()
 
+    # ── Per-page scoped CSS ──────────────────────────────────────────────────
+    st.markdown("""<style>
+    /* Hide the real back button completely, show HTML overlay instead */
+    .back-col .stButton > button {
+      position:absolute !important; opacity:0 !important;
+      pointer-events:none !important; width:1px !important;
+      height:1px !important; padding:0 !important; margin:0 !important;
+      border:0 !important; animation:none !important; min-width:0 !important;
+    }
+    .back-col { position:relative; }
+    /* Ghost HTML back button */
+    .html-back-btn {
+      display:inline-flex; align-items:center; gap:6px;
+      background:transparent; color:rgba(244,244,245,0.45);
+      border:1px solid rgba(255,255,255,0.14); border-radius:8px;
+      font-family:'DM Mono',monospace; font-size:0.64rem;
+      letter-spacing:0.16em; padding:0.42rem 1.1rem;
+      cursor:pointer; user-select:none; transition:all 0.2s ease;
+      margin:0.9rem 0 0 0; white-space:nowrap; width:auto;
+    }
+    .html-back-btn:hover {
+      color:#C8FF00; border-color:rgba(200,255,0,0.35);
+      background:rgba(200,255,0,0.04);
+    }
+    /* Selector card */
+    .selector-card {
+      background:linear-gradient(135deg,rgba(255,255,255,0.025),rgba(255,255,255,0.01));
+      border:1px solid rgba(255,255,255,0.07); border-radius:20px;
+      padding:2.5rem 3rem 2rem; margin:1.5rem 3rem 0;
+      position:relative; overflow:hidden;
+      animation:heroUp 0.6s cubic-bezier(0.16,1,0.3,1) 0.1s both;
+    }
+    .selector-card::before {
+      content:''; position:absolute; top:0; left:0; right:0; height:1px;
+      background:linear-gradient(90deg,transparent,rgba(200,255,0,0.2),transparent);
+    }
+    /* Analyse button row — centred, constrained width */
+    .analyse-row { padding:1.5rem 3rem 2rem; }
+    .analyse-row .stButton > button {
+      max-width:680px !important; margin:0 auto !important;
+      display:block !important; width:100% !important;
+    }
+    /* Results section padding */
+    .results-section { padding:0 3rem 6rem; }
+    </style>""", unsafe_allow_html=True)
+
+    # Topbar
     st.markdown("""
     <div class="pred-topbar">
-      <div><div class="pred-logo-text">KICK<span class="iq">IQ</span></div><div class="pred-subtitle"><span class="live-dot"></span>PREDICTION ENGINE · LIVE</div></div>
+      <div>
+        <div class="pred-logo-text">KICK<span class="iq">IQ</span></div>
+        <div class="pred-subtitle"><span class="live-dot"></span>PREDICTION ENGINE · LIVE</div>
+      </div>
       <div class="topbar-tag">EPL 2024/25</div>
-    </div>
-    """, unsafe_allow_html=True)
+    </div>""", unsafe_allow_html=True)
 
-    st.markdown('<div class="back-wrap">', unsafe_allow_html=True)
-    if st.button("← BACK", key="back_btn"):
-        st.session_state.page='landing'; st.session_state.result=None; st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
+    # Back button row — hidden real button + visible HTML button
+    col_back, _ = st.columns([2, 8])
+    with col_back:
+        st.markdown('<div class="back-col">', unsafe_allow_html=True)
+        if st.button("← BACK", key="back_btn"):
+            st.session_state.page='landing'; st.session_state.result=None; st.rerun()
+        st.markdown("""<div class="html-back-btn" onclick="
+          (function(){
+            var f=window.parent.document;
+            var btns=f.querySelectorAll('button');
+            for(var i=0;i<btns.length;i++){
+              var t=(btns[i].innerText||btns[i].textContent||'').trim();
+              if(t.startsWith('\u2190')){btns[i].click();break;}
+            }
+          })();">← BACK</div>""", unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
-    st.markdown('<div class="selector-zone">', unsafe_allow_html=True)
-    st.markdown('<div style="max-width:960px;margin:auto;"><div class="section-kicker">MATCH SELECTION</div><div class="section-title" style="text-align:center;">WHO\'S PLAYING?</div></div>', unsafe_allow_html=True)
-    _, center_area, _ = st.columns([1,7,1])
-    with center_area:
-        c1, c2, c3 = st.columns([5,1,5])
-        with c1: home_team = st.selectbox("  HOME TEAM", teams, key="home_sel")
-        with c2:
-            st.markdown("<div style='height:44px'></div>", unsafe_allow_html=True)
-            st.markdown("<div style='text-align:center;padding-top:6px;'><span style=\"font-family:'Anton';font-size:1.8rem;color:rgba(244,244,245,0.1);\">VS</span></div>", unsafe_allow_html=True)
-        with c3:
-            away_opts = [t for t in teams if t!=home_team]
-            away_team = st.selectbox(" AWAY TEAM", away_opts, key="away_sel")
-    st.markdown('</div>', unsafe_allow_html=True)
+    # Selector card
+    st.markdown("""<div class="selector-card">
+      <div style="text-align:center;margin-bottom:2rem;">
+        <div class="section-kicker" style="justify-content:center;">MATCH SELECTION</div>
+        <div class="section-title">WHO'S PLAYING?</div>
+      </div>""", unsafe_allow_html=True)
 
-    st.markdown('<div class="analyse-wrap">', unsafe_allow_html=True)
-    _, cta_m, _ = st.columns([2,4,2])
-    with cta_m:
+    col_l, col_vs, col_r = st.columns([10, 2, 10])
+    with col_l:
+        home_team = st.selectbox("🏠  HOME TEAM", teams, key="home_sel")
+    with col_vs:
+        st.markdown("<div style='display:flex;align-items:center;justify-content:center;padding-top:1.8rem;'><span style=\"font-family:'Anton',sans-serif;font-size:1.8rem;color:rgba(244,244,245,0.08);\">VS</span></div>", unsafe_allow_html=True)
+    with col_r:
+        away_opts = [t for t in teams if t!=home_team]
+        away_team = st.selectbox("✈️  AWAY TEAM", away_opts, key="away_sel")
+
+    st.markdown('</div>', unsafe_allow_html=True)  # close selector-card
+
+    # Analyse button
+    st.markdown('<div class="analyse-row">', unsafe_allow_html=True)
+    _, btn_col, _ = st.columns([1, 4, 1])
+    with btn_col:
         clicked = st.button("⚡  ANALYSE THIS MATCH", key="pred_btn", use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
@@ -569,7 +638,7 @@ elif st.session_state.page == 'predict':
         res=st.session_state.result; hs=get_team_stats(df,home_team); as_=get_team_stats(df,away_team)
         hf=get_team_form(df,home_team,5); af=get_team_form(df,away_team,5); h2h=get_h2h(df,home_team,away_team,5)
 
-        st.markdown('<div style="padding:0 4rem 6rem;position:relative;z-index:1;">', unsafe_allow_html=True)
+        st.markdown('<div class="results-section">', unsafe_allow_html=True)
 
         st.markdown(f"""
         <div class="result-hero">
@@ -605,7 +674,7 @@ elif st.session_state.page == 'predict':
         with col1:
             st.markdown(f"""
             <div class="intel-card">
-              <div class="intel-card-kicker"> {home_team.upper()} · RECENT FORM</div>
+              <div class="intel-card-kicker">🏠 {home_team.upper()} · RECENT FORM</div>
               <div class="intel-metrics">
                 <div class="intel-metric"><div class="intel-metric-val">{hs['wins']}</div><div class="intel-metric-lbl">Wins</div></div>
                 <div class="intel-metric"><div class="intel-metric-val">{hs['draws']}</div><div class="intel-metric-lbl">Draws</div></div>
@@ -624,7 +693,7 @@ elif st.session_state.page == 'predict':
         with col2:
             st.markdown(f"""
             <div class="intel-card">
-              <div class="intel-card-kicker"> {away_team.upper()} · RECENT FORM</div>
+              <div class="intel-card-kicker">✈️ {away_team.upper()} · RECENT FORM</div>
               <div class="intel-metrics">
                 <div class="intel-metric"><div class="intel-metric-val">{as_['wins']}</div><div class="intel-metric-lbl">Wins</div></div>
                 <div class="intel-metric"><div class="intel-metric-val">{as_['draws']}</div><div class="intel-metric-lbl">Draws</div></div>
@@ -652,10 +721,10 @@ elif st.session_state.page == 'predict':
         <div class="extra-insight">
           <div class="intel-card-kicker">🔭 PROJECTED SCORING BREAKDOWN</div>
           <div class="insight-row">
-            <div class="insight-item"><div class="insight-item-label"> {home_team} Avg Scored</div><div class="insight-item-val {h_cls}">{home_avg_scored} per game</div></div>
-            <div class="insight-item"><div class="insight-item-label"> {away_team} Avg Scored</div><div class="insight-item-val {a_cls}">{away_avg_scored} per game</div></div>
-            <div class="insight-item"><div class="insight-item-label"> {home_team} Proj Goals</div><div class="insight-item-val {h_exp_cls}">{exp_home}</div></div>
-            <div class="insight-item"><div class="insight-item-label"> {away_team} Proj Goals</div><div class="insight-item-val {a_exp_cls}">{exp_away}</div></div>
+            <div class="insight-item"><div class="insight-item-label">🏠 {home_team} Avg Scored</div><div class="insight-item-val {h_cls}">{home_avg_scored} per game</div></div>
+            <div class="insight-item"><div class="insight-item-label">✈️ {away_team} Avg Scored</div><div class="insight-item-val {a_cls}">{away_avg_scored} per game</div></div>
+            <div class="insight-item"><div class="insight-item-label">🏠 {home_team} Proj Goals</div><div class="insight-item-val {h_exp_cls}">{exp_home}</div></div>
+            <div class="insight-item"><div class="insight-item-label">✈️ {away_team} Proj Goals</div><div class="insight-item-val {a_exp_cls}">{exp_away}</div></div>
           </div>
         </div>""", unsafe_allow_html=True)
 
@@ -663,9 +732,9 @@ elif st.session_state.page == 'predict':
             st.markdown('<div class="section-tag" style="margin-top:0.5rem;">HEAD TO HEAD</div>', unsafe_allow_html=True)
             st.markdown(f"""
             <div class="h2h-card">
-              <div class="intel-card-kicker"> LAST {len(h2h)} MEETINGS · {home_team.upper()} PERSPECTIVE</div>
+              <div class="intel-card-kicker">⚔️ LAST {len(h2h)} MEETINGS · {home_team.upper()} PERSPECTIVE</div>
               {form_html(h2h)}
-              <div class="h2h-stat"><span></span><span>{home_team} won {h2h.count('W')}, drew {h2h.count('D')}, lost {h2h.count('L')} of last {len(h2h)} meetings against {away_team}.</span></div>
+              <div class="h2h-stat"><span>📊</span><span>{home_team} won {h2h.count('W')}, drew {h2h.count('D')}, lost {h2h.count('L')} of last {len(h2h)} meetings against {away_team}.</span></div>
             </div>""", unsafe_allow_html=True)
 
         st.markdown('<div class="section-tag" style="margin-top:0.5rem;">INSIDER INTEL</div>', unsafe_allow_html=True)
@@ -673,11 +742,11 @@ elif st.session_state.page == 'predict':
         notes_html=''.join(f'<div class="notes-item"><span class="note-icon">{ic}</span><span>{tx}</span></div>' for ic,tx in notes)
         st.markdown(f"""
         <div class="notes-card">
-          <div class="intel-card-kicker"> AI ANALYSIS · {home_team.upper()} vs {away_team.upper()}</div>
+          <div class="intel-card-kicker">🤖 AI ANALYSIS · {home_team.upper()} vs {away_team.upper()}</div>
           {notes_html}
         </div>""", unsafe_allow_html=True)
 
-        with st.expander("  MODEL INTERNALS — XGBoost vs Random Forest"):
+        with st.expander("🔬  MODEL INTERNALS — XGBoost vs Random Forest"):
             c1,c2=st.columns(2)
             with c1:
                 st.markdown("**XGBoost (60% weight)**")
