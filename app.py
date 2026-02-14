@@ -8,6 +8,8 @@ from datetime import datetime
 
 st.set_page_config(page_title="KICKIQ · EPL Predictor", page_icon="⚡", layout="wide", initial_sidebar_state="collapsed")
 
+# ── GUARANTEED PADDING KILLER ─────────────────────────────────────────────────
+# components.v1.html runs in real document context (not sandboxed)
 components.html("""<script>
 (function(){
   function nuke(){
@@ -57,6 +59,7 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 @keyframes orbFloat{0%,100%{transform:translate(0,0) scale(1);}33%{transform:translate(25px,-35px) scale(1.04);}66%{transform:translate(-18px,28px) scale(0.96);}}
 .bg-grid{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:-1;pointer-events:none;background-image:linear-gradient(rgba(200,255,0,0.022) 1px,transparent 1px),linear-gradient(90deg,rgba(200,255,0,0.022) 1px,transparent 1px);background-size:80px 80px;mask-image:radial-gradient(ellipse 75% 75% at 50% 50%,black 25%,transparent 100%);}
 
+/* ═══ LANDING ═══ */
 .landing-wrap{width:100vw;max-width:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:5vh 2rem 0;position:relative;z-index:1;box-sizing:border-box;}
 .landing-wrap > *{width:100%;max-width:860px;margin-left:auto;margin-right:auto;}
 .eyebrow{display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,rgba(200,255,0,0.08),rgba(200,255,0,0.02));border:1px solid rgba(200,255,0,0.2);border-radius:100px;padding:6px 18px 6px 10px;font-family:'DM Mono',monospace;font-size:0.66rem;letter-spacing:0.18em;color:var(--acid);text-transform:uppercase;margin-bottom:2rem;animation:fadeDown 0.6s cubic-bezier(0.16,1,0.3,1) 0.05s both;}
@@ -78,7 +81,7 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 .metric-block:nth-child(1) .metric-val{animation-delay:0.55s;}.metric-block:nth-child(2) .metric-val{animation-delay:0.67s;}.metric-block:nth-child(3) .metric-val{animation-delay:0.79s;}.metric-block:nth-child(4) .metric-val{animation-delay:0.91s;}
 @keyframes metricPop{0%{opacity:0;transform:scale(0.55);}65%{transform:scale(1.12);opacity:1;}100%{transform:scale(1);}}
 .metric-lbl{font-family:'DM Mono',monospace;font-size:0.58rem;letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;margin-top:5px;}
-
+/* ── ALL buttons default: big green acid style ── */
 .stButton>button{
   background:var(--acid) !important;color:#050608 !important;border:none !important;
   border-radius:12px !important;font-family:'Anton',sans-serif !important;
@@ -91,6 +94,9 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 .stButton>button:active{transform:scale(0.98) !important;}
 @keyframes ctaPulse{0%,100%{box-shadow:0 0 0 rgba(200,255,0,0);}50%{box-shadow:0 0 38px rgba(200,255,0,0.38);}}
 
+/* ── BACK button override — targets by key using data-testid ── */
+/* Streamlit renders: <div data-testid="stButton"><button>← BACK</button></div> */
+/* We target the button whose text starts with ← via the parent having key=back_btn */
 .cta-wrap{margin-top:2.5rem;position:relative;z-index:1;}
 .sec-header{text-align:center;margin:7rem 0 3.5rem;position:relative;z-index:1;}
 .sec-label{font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.32em;color:var(--acid);text-transform:uppercase;margin-bottom:0.8rem;}
@@ -135,7 +141,7 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 .vs-pill{font-family:'Anton',sans-serif;font-size:0.95rem;color:rgba(255,255,255,0.08);writing-mode:vertical-rl;letter-spacing:0.5em;}
 .landing-footer{font-family:'DM Mono',monospace;font-size:0.56rem;letter-spacing:0.12em;color:rgba(244,244,245,0.16);text-align:center;text-transform:uppercase;margin-top:6rem;padding-bottom:4rem;line-height:2.4;position:relative;z-index:1;}
 .footer-line{height:1px;background:linear-gradient(90deg,transparent,rgba(200,255,0,0.15),transparent);margin:3rem auto 2.5rem;max-width:600px;}
-
+/* ── Feature grid ── */
 .feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;width:100%;max-width:900px;margin:0 auto;position:relative;z-index:1;}
 .feat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.6rem 1.5rem;transition:border-color 0.3s,transform 0.3s;animation:revealUp 0.5s cubic-bezier(0.16,1,0.3,1) both;}
 .feat-card:nth-child(1){animation-delay:0.05s;}.feat-card:nth-child(2){animation-delay:0.12s;}.feat-card:nth-child(3){animation-delay:0.19s;}.feat-card:nth-child(4){animation-delay:0.26s;}.feat-card:nth-child(5){animation-delay:0.33s;}.feat-card:nth-child(6){animation-delay:0.40s;}
@@ -143,7 +149,7 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 .feat-icon{font-size:1.6rem;margin-bottom:0.8rem;}
 .feat-title{font-family:'Anton',sans-serif;font-size:1rem;letter-spacing:0.05em;color:var(--text);margin-bottom:0.5rem;}
 .feat-desc{font-family:'Rajdhani',sans-serif;font-size:0.88rem;font-weight:400;color:var(--muted);line-height:1.55;}
-
+/* ── FAQ ── */
 .faq-list{width:100%;max-width:760px;margin:0 auto;position:relative;z-index:1;}
 .faq-item{border-bottom:1px solid rgba(255,255,255,0.05);padding:1.6rem 0;animation:revealUp 0.5s cubic-bezier(0.16,1,0.3,1) both;}
 .faq-item:nth-child(1){animation-delay:0.05s;}.faq-item:nth-child(2){animation-delay:0.15s;}.faq-item:nth-child(3){animation-delay:0.25s;}.faq-item:nth-child(4){animation-delay:0.35s;}
@@ -152,6 +158,7 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 .faq-q::before{content:'';width:4px;height:1.1rem;background:var(--acid);border-radius:2px;flex-shrink:0;}
 .faq-a{font-family:'Rajdhani',sans-serif;font-size:0.95rem;font-weight:400;color:var(--muted);line-height:1.65;padding-left:14px;}
 
+/* ═══ PREDICT PAGE ═══ */
 .pred-topbar{display:flex;align-items:center;justify-content:space-between;padding:1.2rem 3rem;border-bottom:1px solid rgba(200,255,0,0.07);position:sticky;top:0;z-index:200;background:rgba(5,6,8,0.72);backdrop-filter:blur(22px) saturate(160%);width:100%;animation:topbarDrop 0.5s cubic-bezier(0.16,1,0.3,1) both;}
 @keyframes topbarDrop{from{opacity:0;transform:translateY(-100%);}to{opacity:1;transform:translateY(0);}}
 .pred-logo-text{font-family:'Anton',sans-serif;font-size:1.65rem;letter-spacing:0.04em;color:var(--text);line-height:1;}
@@ -159,7 +166,7 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 .pred-subtitle{font-family:'DM Mono',monospace;font-size:0.56rem;letter-spacing:0.18em;color:var(--muted);text-transform:uppercase;margin-top:3px;}
 .live-dot{width:5px;height:5px;background:var(--acid);border-radius:50%;display:inline-block;box-shadow:0 0 8px var(--acid);animation:pls 1.5s ease-in-out infinite;margin-right:6px;}
 .topbar-tag{font-family:'DM Mono',monospace;font-size:0.55rem;letter-spacing:0.14em;color:rgba(244,244,245,0.2);text-transform:uppercase;}
-
+/* Selector zone */
 .selector-zone{padding:3rem 2rem 1.5rem;width:100%;animation:heroUp 0.6s cubic-bezier(0.16,1,0.3,1) 0.1s both;}
 .stSelectbox>div>div{background:var(--surface) !important;border:1px solid rgba(255,255,255,0.09) !important;border-radius:10px !important;color:var(--text) !important;font-family:'Rajdhani',sans-serif !important;font-size:1.05rem !important;font-weight:600 !important;transition:all .2s ease !important;}
 .stSelectbox>div>div:hover{border-color:rgba(200,255,0,0.38) !important;}
@@ -234,6 +241,7 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 </style>
 """, unsafe_allow_html=True)
 
+# ─── HELPERS ──────────────────────────────────────────────────────────────────
 @st.cache_resource
 def load_models():
     try:
@@ -314,34 +322,35 @@ def form_html(form):
     return '<div class="form-row">'+''.join(f'<span class="fp fp-{r}">{r}</span>' for r in form)+'</div>'
 
 def signal_badge_html(conf):
-    if conf>=0.65: return '<div class="signal-badge s-strong"> STRONG SIGNAL</div>'
-    elif conf>=0.55: return '<div class="signal-badge s-mod"> MODERATE SIGNAL</div>'
-    elif conf>=0.45: return '<div class="signal-badge s-weak"> WEAK SIGNAL</div>'
+    if conf>=0.65: return '<div class="signal-badge s-strong">⚡ STRONG SIGNAL</div>'
+    elif conf>=0.55: return '<div class="signal-badge s-mod">◈ MODERATE SIGNAL</div>'
+    elif conf>=0.45: return '<div class="signal-badge s-weak">⚠ WEAK SIGNAL</div>'
     else: return '<div class="signal-badge s-none">✕ NO CLEAR EDGE</div>'
 
 def insider_notes(home, away, res, hs, as_, h2h):
     notes = []
     idx = np.argmax(res['proba'])
-    notes.append(("", f"Ensemble: XGBoost ({res['xgb'][idx]*100:.0f}%) + Random Forest ({res['rf'][idx]*100:.0f}%) weighted 60/40."))
-    if res['confidence']>0.60: notes.append(("", f"High conviction — {res['outcome']} is the dominant call across both models."))
-    else: notes.append(("", "Probabilities are spread — contested fixture, upsets very possible."))
+    notes.append(("🤖", f"Ensemble: XGBoost ({res['xgb'][idx]*100:.0f}%) + Random Forest ({res['rf'][idx]*100:.0f}%) weighted 60/40."))
+    if res['confidence']>0.60: notes.append(("🔥", f"High conviction — {res['outcome']} is the dominant call across both models."))
+    else: notes.append(("🌊", "Probabilities are spread — contested fixture, upsets very possible."))
     gd_diff = hs['gd']-as_['gd']
     if abs(gd_diff)>8:
         better = home if gd_diff>0 else away
         notes.append(("📈", f"{better} hold significantly stronger goal difference — superior attacking & defensive quality."))
-    if hs['win_rate']>60: notes.append(("", f"{home} winning {hs['win_rate']}% of recent matches — elite home form."))
-    if as_['win_rate']>60: notes.append(("", f"{away} carry {as_['win_rate']}% win rate — dangerous regardless of venue."))
-    if hs['clean_sheets']>=5: notes.append(("", f"{home} kept {hs['clean_sheets']} clean sheets recently — rock-solid defensive unit."))
-    if as_['clean_sheets']>=5: notes.append(("", f"{away} boast {as_['clean_sheets']} clean sheets — expect a tight game."))
+    if hs['win_rate']>60: notes.append(("🏠", f"{home} winning {hs['win_rate']}% of recent matches — elite home form."))
+    if as_['win_rate']>60: notes.append(("✈️", f"{away} carry {as_['win_rate']}% win rate — dangerous regardless of venue."))
+    if hs['clean_sheets']>=5: notes.append(("🧤", f"{home} kept {hs['clean_sheets']} clean sheets recently — rock-solid defensive unit."))
+    if as_['clean_sheets']>=5: notes.append(("🛡️", f"{away} boast {as_['clean_sheets']} clean sheets — expect a tight game."))
     if h2h:
         hw=h2h.count('W'); hd=h2h.count('D'); hl=h2h.count('L')
         verdict = 'History favours the home side.' if hw>hl else 'Away side historically dominant.' if hl>hw else 'Historically level — anyone can win.'
         notes.append(("⚔️", f"H2H ({home}): {hw}W · {hd}D · {hl}L from last {len(h2h)} meetings. {verdict}"))
-    if res['proba'][1]>0.30: notes.append(("", f"Draw probability at {res['proba'][1]*100:.0f}% — cagey, tactical fixture expected."))
+    if res['proba'][1]>0.30: notes.append(("🤝", f"Draw probability at {res['proba'][1]*100:.0f}% — cagey, tactical fixture expected."))
     if hs['btts']>=6 and as_['btts']>=6: notes.append(("⚽", f"Both teams to score is very likely — both sides have featured in high-scoring games recently."))
-    notes.append(("", "Injuries, suspensions, weather & referee tendencies are NOT modelled. Always contextualise."))
+    notes.append(("⚠️", "Injuries, suspensions, weather & referee tendencies are NOT modelled. Always contextualise."))
     return notes
 
+# ─── STATE + BACKGROUND ───────────────────────────────────────────────────────
 if 'page'   not in st.session_state: st.session_state.page   = 'landing'
 if 'result' not in st.session_state: st.session_state.result = None
 
@@ -353,6 +362,9 @@ st.markdown("""
 xgb_model, rf_model, feature_cols, models_ok = load_models()
 df, teams, data_ok = load_data()
 
+# ═══════════════════════════════════════════════════════════
+#  LANDING PAGE
+# ═══════════════════════════════════════════════════════════
 if st.session_state.page == 'landing':
     st.markdown('<div class="landing-wrap">', unsafe_allow_html=True)
 
@@ -374,7 +386,7 @@ if st.session_state.page == 'landing':
     st.markdown('<div class="cta-wrap">', unsafe_allow_html=True)
     _, col_c, _ = st.columns([1, 1.4, 1])
     with col_c:
-        if st.button(" LAUNCH PREDICTION ENGINE", key="cta_btn"):
+        if st.button("⚡  LAUNCH PREDICTION ENGINE", key="cta_btn"):
             st.session_state.page = 'predict'
             st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
@@ -390,9 +402,9 @@ if st.session_state.page == 'landing':
       <div class="sec-sub">Three steps from selection to prediction</div>
     </div>
     <div class="hiw-grid">
-      <div class="hiw-card"><div class="hiw-num">01</div></div><div class="hiw-title">SELECT MATCH</div><div class="hiw-desc">Choose any home and away team from the current EPL roster. KICKIQ covers all 20 Premier League clubs.</div></div>
-      <div class="hiw-card"><div class="hiw-num">02</div></div><div class="hiw-title">ENSEMBLE RUNS</div><div class="hiw-desc">XGBoost and Random Forest models process 219 features — form, goal difference, H2H history, home/away splits — weighted 60/40.</div></div>
-      <div class="hiw-card"><div class="hiw-num">03</div></div><div class="hiw-title">GET INSIGHTS</div><div class="hiw-desc">Receive outcome probabilities, confidence scoring, team intelligence, H2H analysis, projected goals, and AI-generated insider context.</div></div>
+      <div class="hiw-card"><div class="hiw-num">01</div><div class="hiw-icon">🎯</div><div class="hiw-title">SELECT MATCH</div><div class="hiw-desc">Choose any home and away team from the current EPL roster. KICKIQ covers all 20 Premier League clubs.</div></div>
+      <div class="hiw-card"><div class="hiw-num">02</div><div class="hiw-icon">⚙️</div><div class="hiw-title">ENSEMBLE RUNS</div><div class="hiw-desc">XGBoost and Random Forest models process 219 features — form, goal difference, H2H history, home/away splits — weighted 60/40.</div></div>
+      <div class="hiw-card"><div class="hiw-num">03</div><div class="hiw-icon">📊</div><div class="hiw-title">GET INSIGHTS</div><div class="hiw-desc">Receive outcome probabilities, confidence scoring, team intelligence, H2H analysis, projected goals, and AI-generated insider context.</div></div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -412,7 +424,7 @@ if st.session_state.page == 'landing':
       </div>
       <div class="compare-grid">
         <div class="compare-col ours">
-          <div class="compare-col-label"> KICKIQ</div>
+          <div class="compare-col-label">⚡ KICKIQ</div>
           <div class="compare-row"><span class="c-check">✓</span>219 engineered features per match</div>
           <div class="compare-row"><span class="c-check">✓</span>XGBoost + Random Forest ensemble</div>
           <div class="compare-row"><span class="c-check">✓</span>10 years of training data</div>
@@ -447,26 +459,32 @@ if st.session_state.page == 'landing':
     </div>
     <div class="feat-grid">
       <div class="feat-card">
+        <div class="feat-icon">📈</div>
         <div class="feat-title">FORM &amp; MOMENTUM</div>
         <div class="feat-desc">Rolling win/loss/draw rates, goal-scoring streaks, consecutive clean sheets, points-per-game over 5, 10, and 20-match windows.</div>
       </div>
       <div class="feat-card">
+        <div class="feat-icon">⚔️</div>
         <div class="feat-title">HEAD TO HEAD</div>
         <div class="feat-desc">Historical H2H win ratios, average goals in H2H meetings, home vs away performance in direct encounters, recency-weighted.</div>
       </div>
       <div class="feat-card">
+        <div class="feat-icon">🏠</div>
         <div class="feat-title">VENUE SPLITS</div>
         <div class="feat-desc">Separate home and away form, goals scored and conceded at each venue, clean sheet rates home vs away.</div>
       </div>
       <div class="feat-card">
+        <div class="feat-icon">⚽</div>
         <div class="feat-title">GOAL PATTERNS</div>
         <div class="feat-desc">Average goals scored and conceded, BTTS rates, over/under 2.5 tendencies, first/second half goal split percentages.</div>
       </div>
       <div class="feat-card">
+        <div class="feat-icon">🎯</div>
         <div class="feat-title">ATTACK VS DEFENCE</div>
         <div class="feat-desc">Offensive rating vs opposition defensive rating matchup, goal difference per window, xG proxies from historical shot data.</div>
       </div>
       <div class="feat-card">
+        <div class="feat-icon">📅</div>
         <div class="feat-title">TEMPORAL FEATURES</div>
         <div class="feat-desc">Seasonal position, fatigue proxies from fixture congestion, early vs late season trends, promotion/relegation pressure indicators.</div>
       </div>
@@ -500,7 +518,7 @@ if st.session_state.page == 'landing':
     <div class="landing-footer">
       Built with XGBoost · scikit-learn · Streamlit · 2024/25 EPL Data<br>
       Model accuracy based on out-of-sample test set evaluation<br>
-       For entertainment purposes only · Not financial advice · Bet responsibly
+      ⚠ For entertainment purposes only · Not financial advice · Bet responsibly
     </div>
     """, unsafe_allow_html=True)
 
@@ -511,106 +529,125 @@ if st.session_state.page == 'landing':
 # ═══════════════════════════════════════════════════════════
 elif st.session_state.page == 'predict':
     if not models_ok or not data_ok:
-        st.error("Run `python src/train_models.py` first to generate models & features.")
+        st.error("Run `python src/train_models.py` first.")
         st.stop()
 
-    # ── Per-page scoped CSS ──────────────────────────────────────────────────
+    # ── Predict page CSS ─────────────────────────────────────────────────────
     st.markdown("""<style>
-    /* Hide the real back button completely, show HTML overlay instead */
-    .back-col .stButton > button {
-      position:absolute !important; opacity:0 !important;
-      pointer-events:none !important; width:1px !important;
-      height:1px !important; padding:0 !important; margin:0 !important;
-      border:0 !important; animation:none !important; min-width:0 !important;
+    /* ── TOPBAR ── */
+    .pred-topbar{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:1.1rem 2.5rem;border-bottom:1px solid rgba(200,255,0,0.08);
+      position:sticky;top:0;z-index:200;
+      background:rgba(5,6,8,0.82);backdrop-filter:blur(24px) saturate(180%);
+      width:100%;animation:topbarDrop 0.45s cubic-bezier(0.16,1,0.3,1) both;
     }
-    .back-col { position:relative; }
-    /* Ghost HTML back button */
-    .html-back-btn {
-      display:inline-flex; align-items:center; gap:6px;
-      background:transparent; color:rgba(244,244,245,0.45);
-      border:1px solid rgba(255,255,255,0.14); border-radius:8px;
-      font-family:'DM Mono',monospace; font-size:0.64rem;
-      letter-spacing:0.16em; padding:0.42rem 1.1rem;
-      cursor:pointer; user-select:none; transition:all 0.2s ease;
-      margin:0.9rem 0 0 0; white-space:nowrap; width:auto;
+    @keyframes topbarDrop{from{opacity:0;transform:translateY(-100%);}to{opacity:1;transform:translateY(0);}}
+    .pred-logo{font-family:'Anton',sans-serif;font-size:1.55rem;letter-spacing:0.04em;color:#F4F4F5;line-height:1;}
+    .pred-logo .iq{color:#C8FF00;}
+    .pred-sub{font-family:'DM Mono',monospace;font-size:0.54rem;letter-spacing:0.18em;color:rgba(244,244,245,0.35);text-transform:uppercase;margin-top:3px;display:flex;align-items:center;gap:6px;}
+    .ldot{width:5px;height:5px;background:#C8FF00;border-radius:50%;box-shadow:0 0 7px #C8FF00;animation:pls 1.5s ease-in-out infinite;flex-shrink:0;}
+    .topbar-right{display:flex;align-items:center;gap:1.5rem;}
+    .topbar-tag{font-family:'DM Mono',monospace;font-size:0.54rem;letter-spacing:0.14em;color:rgba(244,244,245,0.18);text-transform:uppercase;}
+    /* Pure HTML back button — no st.button involved */
+    .back-btn-html{
+      display:inline-flex;align-items:center;gap:7px;
+      background:rgba(255,255,255,0.03);
+      color:rgba(244,244,245,0.5);
+      border:1px solid rgba(255,255,255,0.1);border-radius:8px;
+      font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.16em;
+      padding:0.38rem 1rem;cursor:pointer;user-select:none;
+      transition:all 0.2s ease;white-space:nowrap;text-decoration:none;
     }
-    .html-back-btn:hover {
-      color:#C8FF00; border-color:rgba(200,255,0,0.35);
-      background:rgba(200,255,0,0.04);
+    .back-btn-html:hover{color:#C8FF00;border-color:rgba(200,255,0,0.3);background:rgba(200,255,0,0.04);}
+    /* ── PREDICT CONTENT WRAP ── */
+    .pred-wrap{width:100%;max-width:1000px;margin:0 auto;padding:2rem 2.5rem 6rem;}
+    /* ── SELECTOR CARD ── */
+    .sel-card{
+      background:linear-gradient(135deg,rgba(200,255,0,0.04) 0%,rgba(255,255,255,0.018) 100%);
+      border:1px solid rgba(200,255,0,0.1);border-radius:22px;
+      padding:2.8rem 3rem 2.5rem;margin-bottom:1.8rem;
+      position:relative;overflow:hidden;
+      animation:cardUp 0.55s cubic-bezier(0.16,1,0.3,1) 0.05s both;
     }
-    /* Selector card */
-    .selector-card {
-      background:linear-gradient(135deg,rgba(255,255,255,0.025),rgba(255,255,255,0.01));
-      border:1px solid rgba(255,255,255,0.07); border-radius:20px;
-      padding:2.5rem 3rem 2rem; margin:1.5rem 3rem 0;
-      position:relative; overflow:hidden;
-      animation:heroUp 0.6s cubic-bezier(0.16,1,0.3,1) 0.1s both;
+    .sel-card::before{
+      content:'';position:absolute;top:0;left:10%;right:10%;height:1px;
+      background:linear-gradient(90deg,transparent,rgba(200,255,0,0.3),transparent);
     }
-    .selector-card::before {
-      content:''; position:absolute; top:0; left:0; right:0; height:1px;
-      background:linear-gradient(90deg,transparent,rgba(200,255,0,0.2),transparent);
+    .sel-eyebrow{font-family:'DM Mono',monospace;font-size:0.58rem;letter-spacing:0.28em;color:rgba(200,255,0,0.7);text-transform:uppercase;margin-bottom:0.6rem;display:flex;align-items:center;gap:10px;justify-content:center;}
+    .sel-eyebrow::before{content:'';width:20px;height:1px;background:rgba(200,255,0,0.5);}
+    .sel-eyebrow::after{content:'';width:20px;height:1px;background:rgba(200,255,0,0.5);}
+    .sel-title{font-family:'Anton',sans-serif;font-size:clamp(2rem,4vw,3rem);letter-spacing:0.01em;text-align:center;color:#F4F4F5;margin-bottom:2.5rem;line-height:1;}
+    .vs-badge-pred{font-family:'Anton',sans-serif;font-size:1.5rem;color:rgba(244,244,245,0.08);text-align:center;line-height:1;padding-top:2rem;}
+    /* ── ANALYSE BUTTON — fully constrained ── */
+    .analyse-outer{display:flex;justify-content:center;margin:0.5rem 0 0;}
+    /* stButton inside pred-wrap: max-width controlled */
+    .pred-wrap .stButton>button{
+      background:#C8FF00 !important;color:#050608 !important;
+      border:none !important;border-radius:12px !important;
+      font-family:'Anton',sans-serif !important;font-size:1.2rem !important;
+      letter-spacing:0.08em !important;padding:0.95rem 2rem !important;
+      width:100% !important;max-width:640px !important;
+      transition:all 0.22s cubic-bezier(0.34,1.56,0.64,1) !important;
+      animation:ctaPulse 4s ease-in-out infinite !important;
+      display:block !important;margin:0 auto !important;
     }
-    /* Analyse button row — centred, constrained width */
-    .analyse-row { padding:1.5rem 3rem 2rem; }
-    .analyse-row .stButton > button {
-      max-width:680px !important; margin:0 auto !important;
-      display:block !important; width:100% !important;
+    .pred-wrap .stButton>button:hover{
+      transform:translateY(-3px) scale(1.02) !important;
+      box-shadow:0 0 50px rgba(200,255,0,0.6),0 8px 30px rgba(200,255,0,0.25) !important;
+      animation:none !important;
     }
-    /* Results section padding */
-    .results-section { padding:0 3rem 6rem; }
+    /* ── RESULTS ── */
+    .results-block{margin-top:2rem;}
     </style>""", unsafe_allow_html=True)
 
-    # Topbar
+    # ── Topbar with pure-HTML back button ────────────────────────────────────
+    # Use st.query_params so clicking back sets ?page=landing, which triggers rerun
+    if st.query_params.get("nav") == "landing":
+        st.session_state.page = 'landing'
+        st.session_state.result = None
+        st.query_params.clear()
+        st.rerun()
+
     st.markdown("""
     <div class="pred-topbar">
       <div>
-        <div class="pred-logo-text">KICK<span class="iq">IQ</span></div>
-        <div class="pred-subtitle"><span class="live-dot"></span>PREDICTION ENGINE · LIVE</div>
+        <div class="pred-logo">KICK<span class="iq">IQ</span></div>
+        <div class="pred-sub"><span class="ldot"></span>PREDICTION ENGINE · LIVE</div>
       </div>
-      <div class="topbar-tag">EPL 2024/25</div>
-    </div>""", unsafe_allow_html=True)
+      <div class="topbar-right">
+        <div class="topbar-tag">EPL 2024/25</div>
+        <a class="back-btn-html" href="?nav=landing">← BACK</a>
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
 
-    # Back button row — hidden real button + visible HTML button
-    col_back, _ = st.columns([2, 8])
-    with col_back:
-        st.markdown('<div class="back-col">', unsafe_allow_html=True)
-        if st.button("← BACK", key="back_btn"):
-            st.session_state.page='landing'; st.session_state.result=None; st.rerun()
-        st.markdown("""<div class="html-back-btn" onclick="
-          (function(){
-            var f=window.parent.document;
-            var btns=f.querySelectorAll('button');
-            for(var i=0;i<btns.length;i++){
-              var t=(btns[i].innerText||btns[i].textContent||'').trim();
-              if(t.startsWith('\u2190')){btns[i].click();break;}
-            }
-          })();">← BACK</div>""", unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+    # ── Main content wrapper ──────────────────────────────────────────────────
+    st.markdown('<div class="pred-wrap">', unsafe_allow_html=True)
 
-    # Selector card
-    st.markdown("""<div class="selector-card">
-      <div style="text-align:center;margin-bottom:2rem;">
-        <div class="section-kicker" style="justify-content:center;">MATCH SELECTION</div>
-        <div class="section-title">WHO'S PLAYING?</div>
-      </div>""", unsafe_allow_html=True)
+    # Selector card — header in HTML, dropdowns via st.columns
+    st.markdown("""
+    <div class="sel-card">
+      <div class="sel-eyebrow">MATCH SELECTION</div>
+      <div class="sel-title">WHO'S PLAYING?</div>
+    </div>
+    """, unsafe_allow_html=True)
 
     col_l, col_vs, col_r = st.columns([10, 2, 10])
     with col_l:
         home_team = st.selectbox("🏠  HOME TEAM", teams, key="home_sel")
     with col_vs:
-        st.markdown("<div style='display:flex;align-items:center;justify-content:center;padding-top:1.8rem;'><span style=\"font-family:'Anton',sans-serif;font-size:1.8rem;color:rgba(244,244,245,0.08);\">VS</span></div>", unsafe_allow_html=True)
+        st.markdown("<div class='vs-badge-pred'>VS</div>", unsafe_allow_html=True)
     with col_r:
-        away_opts = [t for t in teams if t!=home_team]
+        away_opts = [t for t in teams if t != home_team]
         away_team = st.selectbox("✈️  AWAY TEAM", away_opts, key="away_sel")
 
-    st.markdown('</div>', unsafe_allow_html=True)  # close selector-card
+    st.markdown("<div style='height:1.4rem'></div>", unsafe_allow_html=True)
 
-    # Analyse button
-    st.markdown('<div class="analyse-row">', unsafe_allow_html=True)
+    # Analyse button — centred inside pred-wrap which constrains its width
     _, btn_col, _ = st.columns([1, 4, 1])
     with btn_col:
         clicked = st.button("⚡  ANALYSE THIS MATCH", key="pred_btn", use_container_width=True)
-    st.markdown('</div>', unsafe_allow_html=True)
 
     if clicked:
         with st.spinner('Running ensemble analysis…'):
@@ -620,7 +657,7 @@ elif st.session_state.page == 'predict':
         res=st.session_state.result; hs=get_team_stats(df,home_team); as_=get_team_stats(df,away_team)
         hf=get_team_form(df,home_team,5); af=get_team_form(df,away_team,5); h2h=get_h2h(df,home_team,away_team,5)
 
-        st.markdown('<div class="results-section">', unsafe_allow_html=True)
+        st.markdown('<div class="results-block">', unsafe_allow_html=True)
 
         st.markdown(f"""
         <div class="result-hero">
@@ -635,9 +672,9 @@ elif st.session_state.page == 'predict':
         ha="active" if res['outcome']=='Home Win' else ""; da="active" if res['outcome']=='Draw' else ""; aa="active" if res['outcome']=='Away Win' else ""
         st.markdown(f"""
         <div class="prob-grid">
-          <div class="prob-card {ha}"><div class="prob-pct">{res['proba'][0]*100:.0f}%</div><div class="prob-label"> {home_team}</div></div>
-          <div class="prob-card {da}"><div class="prob-pct">{res['proba'][1]*100:.0f}%</div><div class="prob-label"> Draw</div></div>
-          <div class="prob-card {aa}"><div class="prob-pct">{res['proba'][2]*100:.0f}%</div><div class="prob-label"> {away_team}</div></div>
+          <div class="prob-card {ha}"><div class="prob-pct">{res['proba'][0]*100:.0f}%</div><div class="prob-label">🏠 {home_team}</div></div>
+          <div class="prob-card {da}"><div class="prob-pct">{res['proba'][1]*100:.0f}%</div><div class="prob-label">🤝 Draw</div></div>
+          <div class="prob-card {aa}"><div class="prob-pct">{res['proba'][2]*100:.0f}%</div><div class="prob-label">✈️ {away_team}</div></div>
         </div>""", unsafe_allow_html=True)
 
         winner_idx=int(np.argmax(res['proba']))
@@ -737,4 +774,6 @@ elif st.session_state.page == 'predict':
                 st.markdown("**Random Forest (40% weight)**")
                 for label,p in zip([home_team,'Draw',away_team],res['rf']): st.markdown(f"`{label}` → **{p*100:.1f}%**")
 
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)  # close results-block
+
+    st.markdown('</div>', unsafe_allow_html=True)  # close pred-wrap
