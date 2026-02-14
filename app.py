@@ -402,9 +402,9 @@ if st.session_state.page == 'landing':
       <div class="sec-sub">Three steps from selection to prediction</div>
     </div>
     <div class="hiw-grid">
-      <div class="hiw-card"><div class="hiw-num">01</div><div class="hiw-icon">🎯</div><div class="hiw-title">SELECT MATCH</div><div class="hiw-desc">Choose any home and away team from the current EPL roster. KICKIQ covers all 20 Premier League clubs.</div></div>
-      <div class="hiw-card"><div class="hiw-num">02</div><div class="hiw-icon">⚙️</div><div class="hiw-title">ENSEMBLE RUNS</div><div class="hiw-desc">XGBoost and Random Forest models process 219 features — form, goal difference, H2H history, home/away splits — weighted 60/40.</div></div>
-      <div class="hiw-card"><div class="hiw-num">03</div><div class="hiw-icon">📊</div><div class="hiw-title">GET INSIGHTS</div><div class="hiw-desc">Receive outcome probabilities, confidence scoring, team intelligence, H2H analysis, projected goals, and AI-generated insider context.</div></div>
+      <div class="hiw-card"><div class="hiw-num">01</div><div class="hiw-icon"></div><div class="hiw-title">SELECT MATCH</div><div class="hiw-desc">Choose any home and away team from the current EPL roster. KICKIQ covers all 20 Premier League clubs.</div></div>
+      <div class="hiw-card"><div class="hiw-num">02</div><div class="hiw-icon"></div><div class="hiw-title">ENSEMBLE RUNS</div><div class="hiw-desc">XGBoost and Random Forest models process 219 features — form, goal difference, H2H history, home/away splits — weighted 60/40.</div></div>
+      <div class="hiw-card"><div class="hiw-num">03</div><div class="hiw-icon"></div><div class="hiw-title">GET INSIGHTS</div><div class="hiw-desc">Receive outcome probabilities, confidence scoring, team intelligence, H2H analysis, projected goals, and AI-generated insider context.</div></div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -534,82 +534,90 @@ elif st.session_state.page == 'predict':
 
     # ── Predict page CSS ─────────────────────────────────────────────────────
     st.markdown("""<style>
-    /* ── TOPBAR ── */
-    .pred-topbar{
-      display:flex;align-items:center;justify-content:space-between;
-      padding:1.1rem 2.5rem;border-bottom:1px solid rgba(200,255,0,0.08);
-      position:sticky;top:0;z-index:200;
-      background:rgba(5,6,8,0.82);backdrop-filter:blur(24px) saturate(180%);
-      width:100%;animation:topbarDrop 0.45s cubic-bezier(0.16,1,0.3,1) both;
-    }
+    /* TOPBAR */
+    .pred-topbar{display:flex;align-items:center;justify-content:space-between;padding:1rem 2.5rem;border-bottom:1px solid rgba(200,255,0,0.07);position:sticky;top:0;z-index:200;background:rgba(5,6,8,0.92);backdrop-filter:blur(28px) saturate(200%);width:100%;animation:topbarDrop 0.4s cubic-bezier(0.16,1,0.3,1) both;}
     @keyframes topbarDrop{from{opacity:0;transform:translateY(-100%);}to{opacity:1;transform:translateY(0);}}
-    .pred-logo{font-family:'Anton',sans-serif;font-size:1.55rem;letter-spacing:0.04em;color:#F4F4F5;line-height:1;}
-    .pred-logo .iq{color:#C8FF00;}
-    .pred-sub{font-family:'DM Mono',monospace;font-size:0.54rem;letter-spacing:0.18em;color:rgba(244,244,245,0.35);text-transform:uppercase;margin-top:3px;display:flex;align-items:center;gap:6px;}
+    .pred-logo{font-family:'Anton',sans-serif;font-size:1.5rem;letter-spacing:0.04em;color:#F4F4F5;line-height:1;}
+    .pred-logo .iq{color:#C8FF00;text-shadow:0 0 18px rgba(200,255,0,0.45);}
+    .pred-sub{font-family:'DM Mono',monospace;font-size:0.5rem;letter-spacing:0.18em;color:rgba(244,244,245,0.28);text-transform:uppercase;margin-top:3px;display:flex;align-items:center;gap:6px;}
     .ldot{width:5px;height:5px;background:#C8FF00;border-radius:50%;box-shadow:0 0 7px #C8FF00;animation:pls 1.5s ease-in-out infinite;flex-shrink:0;}
-    .topbar-right{display:flex;align-items:center;gap:1.5rem;}
-    .topbar-tag{font-family:'DM Mono',monospace;font-size:0.54rem;letter-spacing:0.14em;color:rgba(244,244,245,0.18);text-transform:uppercase;}
-    /* Pure HTML back button — no st.button involved */
-    .back-btn-html{
-      display:inline-flex;align-items:center;gap:7px;
-      background:rgba(255,255,255,0.03);
-      color:rgba(244,244,245,0.5);
-      border:1px solid rgba(255,255,255,0.1);border-radius:8px;
-      font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.16em;
-      padding:0.38rem 1rem;cursor:pointer;user-select:none;
-      transition:all 0.2s ease;white-space:nowrap;text-decoration:none;
+    .topbar-right{display:flex;align-items:center;gap:1.2rem;}
+    .topbar-tag{font-family:'DM Mono',monospace;font-size:0.5rem;letter-spacing:0.14em;color:rgba(244,244,245,0.14);text-transform:uppercase;}
+    .back-btn-html{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.03);color:rgba(244,244,245,0.42);border:1px solid rgba(255,255,255,0.08);border-radius:7px;font-family:'DM Mono',monospace;font-size:0.56rem;letter-spacing:0.14em;padding:0.34rem 0.85rem;cursor:pointer;user-select:none;transition:all 0.2s ease;white-space:nowrap;text-decoration:none;}
+    .back-btn-html:hover{color:#C8FF00;border-color:rgba(200,255,0,0.28);background:rgba(200,255,0,0.04);}
+
+    /* PAGE LAYOUT */
+    .pred-page{width:100%;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:5vh 1.5rem 8rem;}
+
+    /* MATCH SELECTION ZONE */
+    .match-zone{width:100%;max-width:820px;animation:heroUp 0.65s cubic-bezier(0.16,1,0.3,1) 0.05s both;}
+
+    /* Kicker */
+    .match-kicker{font-family:'DM Mono',monospace;font-size:0.58rem;letter-spacing:0.32em;color:rgba(200,255,0,0.55);text-transform:uppercase;margin-bottom:0.9rem;display:flex;align-items:center;justify-content:center;gap:14px;}
+    .match-kicker::before,.match-kicker::after{content:'';width:32px;height:1px;background:rgba(200,255,0,0.25);}
+
+    /* Big title */
+    .match-title{font-family:'Anton',sans-serif;font-size:clamp(2.8rem,6vw,5rem);letter-spacing:-0.01em;color:#F4F4F5;line-height:0.9;text-align:center;margin-bottom:0.5rem;}
+    .match-subtitle{font-family:'DM Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:rgba(244,244,245,0.22);text-transform:uppercase;text-align:center;margin-bottom:3rem;}
+
+    /* VS STRIP — the actual team picker card */
+    .vs-strip{
+      width:100%;border:1px solid rgba(200,255,0,0.12);border-radius:20px;
+      background:linear-gradient(145deg,rgba(200,255,0,0.05) 0%,rgba(10,12,15,0.95) 60%,rgba(0,229,255,0.02) 100%);
+      box-shadow:0 0 80px rgba(200,255,0,0.04),0 40px 100px rgba(0,0,0,0.6);
+      overflow:hidden;position:relative;
     }
-    .back-btn-html:hover{color:#C8FF00;border-color:rgba(200,255,0,0.3);background:rgba(200,255,0,0.04);}
-    /* ── PREDICT CONTENT WRAP ── */
-    .pred-wrap{width:100%;max-width:1000px;margin:0 auto;padding:2rem 2.5rem 6rem;}
-    /* ── SELECTOR CARD ── */
-    .sel-card{
-      background:linear-gradient(135deg,rgba(200,255,0,0.04) 0%,rgba(255,255,255,0.018) 100%);
-      border:1px solid rgba(200,255,0,0.1);border-radius:22px;
-      padding:2.8rem 3rem 2.5rem;margin-bottom:1.8rem;
-      position:relative;overflow:hidden;
-      animation:cardUp 0.55s cubic-bezier(0.16,1,0.3,1) 0.05s both;
-    }
-    .sel-card::before{
-      content:'';position:absolute;top:0;left:10%;right:10%;height:1px;
-      background:linear-gradient(90deg,transparent,rgba(200,255,0,0.3),transparent);
-    }
-    .sel-eyebrow{font-family:'DM Mono',monospace;font-size:0.58rem;letter-spacing:0.28em;color:rgba(200,255,0,0.7);text-transform:uppercase;margin-bottom:0.6rem;display:flex;align-items:center;gap:10px;justify-content:center;}
-    .sel-eyebrow::before{content:'';width:20px;height:1px;background:rgba(200,255,0,0.5);}
-    .sel-eyebrow::after{content:'';width:20px;height:1px;background:rgba(200,255,0,0.5);}
-    .sel-title{font-family:'Anton',sans-serif;font-size:clamp(2rem,4vw,3rem);letter-spacing:0.01em;text-align:center;color:#F4F4F5;margin-bottom:2.5rem;line-height:1;}
-    .vs-badge-pred{font-family:'Anton',sans-serif;font-size:1.5rem;color:rgba(244,244,245,0.08);text-align:center;line-height:1;padding-top:2rem;}
-    /* ── ANALYSE BUTTON — fully constrained ── */
-    .analyse-outer{display:flex;justify-content:center;margin:0.5rem 0 0;}
-    /* stButton inside pred-wrap: max-width controlled */
-    .pred-wrap .stButton>button{
-      background:#C8FF00 !important;color:#050608 !important;
-      border:none !important;border-radius:12px !important;
-      font-family:'Anton',sans-serif !important;font-size:1.2rem !important;
-      letter-spacing:0.08em !important;padding:0.95rem 2rem !important;
-      width:100% !important;max-width:640px !important;
+    .vs-strip::before{content:'';position:absolute;top:0;left:12%;right:12%;height:1px;background:linear-gradient(90deg,transparent,rgba(200,255,0,0.3),transparent);}
+    .vs-strip::after{content:'';position:absolute;bottom:0;left:12%;right:12%;height:1px;background:linear-gradient(90deg,transparent,rgba(200,255,0,0.08),transparent);}
+
+    /* Inner grid: home | divider | away */
+    .vs-inner{display:grid;grid-template-columns:1fr 64px 1fr;min-height:140px;}
+    .team-panel{padding:2rem 2.2rem 1.6rem;display:flex;flex-direction:column;justify-content:flex-start;}
+    .team-panel.home-panel{border-right:1px solid rgba(255,255,255,0.045);}
+    .team-panel.away-panel{border-left:1px solid rgba(255,255,255,0.045);}
+    .tp-label{font-family:'DM Mono',monospace;font-size:0.52rem;letter-spacing:0.22em;color:rgba(244,244,245,0.28);text-transform:uppercase;margin-bottom:0.5rem;}
+    .vs-center{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;background:rgba(200,255,0,0.025);position:relative;}
+    .vs-center::before{content:'';position:absolute;top:0;bottom:0;left:50%;width:1px;background:linear-gradient(to bottom,transparent,rgba(200,255,0,0.12),transparent);}
+    .vs-center-text{font-family:'Anton',sans-serif;font-size:0.95rem;color:rgba(244,244,245,0.06);letter-spacing:0.12em;position:relative;z-index:1;}
+
+    /* Stacked TEAM NAME in panel */
+    .team-name-display{font-family:'Anton',sans-serif;font-size:1.55rem;letter-spacing:0.02em;color:#F4F4F5;line-height:1;min-height:2rem;}
+
+    /* Selectbox inside panels — ultra-minimal */
+    .team-panel .stSelectbox>div>div{background:transparent !important;border:none !important;border-bottom:2px solid rgba(200,255,0,0.12) !important;border-radius:0 !important;padding:0.1rem 0 0.4rem !important;font-family:'Anton',sans-serif !important;font-size:1.45rem !important;letter-spacing:0.01em !important;color:#F4F4F5 !important;box-shadow:none !important;}
+    .team-panel .stSelectbox>div>div:hover{border-bottom-color:rgba(200,255,0,0.38) !important;}
+    .team-panel .stSelectbox:focus-within div[data-baseweb="select"]{border-bottom-color:rgba(200,255,0,0.7) !important;box-shadow:0 2px 0 rgba(200,255,0,0.22) !important;}
+    .team-panel .stSelectbox label{display:none !important;}
+    .team-panel .stSelectbox svg{color:rgba(200,255,0,0.3) !important;}
+
+    /* CTA bar inside card */
+    .vs-cta-bar{border-top:1px solid rgba(255,255,255,0.04);padding:1.6rem 2rem;background:rgba(0,0,0,0.18);display:flex;flex-direction:column;align-items:center;gap:0.8rem;}
+    .cta-meta{font-family:'DM Mono',monospace;font-size:0.5rem;letter-spacing:0.15em;color:rgba(244,244,245,0.15);text-transform:uppercase;}
+
+    /* Analyse button — tightly scoped to .match-zone */
+    .match-zone .stButton>button{
+      background:#C8FF00 !important;color:#050608 !important;border:none !important;
+      border-radius:12px !important;font-family:'Anton',sans-serif !important;
+      font-size:1.1rem !important;letter-spacing:0.1em !important;
+      padding:0.9rem 3.5rem !important;width:auto !important;
+      min-width:280px !important;max-width:420px !important;
+      display:block !important;margin:0 auto !important;
       transition:all 0.22s cubic-bezier(0.34,1.56,0.64,1) !important;
       animation:ctaPulse 4s ease-in-out infinite !important;
-      display:block !important;margin:0 auto !important;
     }
-    .pred-wrap .stButton>button:hover{
-      transform:translateY(-3px) scale(1.02) !important;
-      box-shadow:0 0 50px rgba(200,255,0,0.6),0 8px 30px rgba(200,255,0,0.25) !important;
-      animation:none !important;
-    }
-    /* ── RESULTS ── */
-    .results-block{margin-top:2rem;}
+    .match-zone .stButton>button:hover{transform:translateY(-3px) scale(1.03) !important;box-shadow:0 0 55px rgba(200,255,0,0.65),0 12px 40px rgba(200,255,0,0.3) !important;animation:none !important;}
+
+    /* Results */
+    .results-block{width:100%;max-width:820px;margin-top:2rem;}
     </style>""", unsafe_allow_html=True)
 
-    # ── Topbar with pure-HTML back button ────────────────────────────────────
-    # Use st.query_params so clicking back sets ?page=landing, which triggers rerun
+    # ── Nav handler ──────────────────────────────────────────────────────────
     if st.query_params.get("nav") == "landing":
-        st.session_state.page = 'landing'
-        st.session_state.result = None
-        st.query_params.clear()
-        st.rerun()
+        st.session_state.page = 'landing'; st.session_state.result = None
+        st.query_params.clear(); st.rerun()
 
-    st.markdown("""
+    # ── Topbar ───────────────────────────────────────────────────────────────
+    st.markdown(f"""
     <div class="pred-topbar">
       <div>
         <div class="pred-logo">KICK<span class="iq">IQ</span></div>
@@ -619,35 +627,54 @@ elif st.session_state.page == 'predict':
         <div class="topbar-tag">EPL 2024/25</div>
         <a class="back-btn-html" href="?nav=landing">← BACK</a>
       </div>
-    </div>
+    </div>""", unsafe_allow_html=True)
+
+    # ── Page body ─────────────────────────────────────────────────────────────
+    st.markdown('<div class="pred-page">', unsafe_allow_html=True)
+    st.markdown('<div class="match-zone">', unsafe_allow_html=True)
+
+    today = datetime.now().strftime('%A · %d %B %Y').upper()
+    st.markdown(f"""
+    <div class="match-kicker">MATCH SELECTION</div>
+    <div class="match-title">WHO'S PLAYING?</div>
+    <div class="match-subtitle">{today} · PREMIER LEAGUE 2024/25</div>
     """, unsafe_allow_html=True)
 
-    # ── Main content wrapper ──────────────────────────────────────────────────
-    st.markdown('<div class="pred-wrap">', unsafe_allow_html=True)
-
-    # Selector card — header in HTML, dropdowns via st.columns
+    # VS STRIP — labels in HTML, selects in columns underneath
     st.markdown("""
-    <div class="sel-card">
-      <div class="sel-eyebrow">MATCH SELECTION</div>
-      <div class="sel-title">WHO'S PLAYING?</div>
-    </div>
+    <div class="vs-strip">
+      <div class="vs-inner">
+        <div class="team-panel home-panel"><div class="tp-label">🏠 Home Team</div></div>
+        <div class="vs-center"><div class="vs-center-text">VS</div></div>
+        <div class="team-panel away-panel"><div class="tp-label">✈️ Away Team</div></div>
+      </div>
+    </div>""", unsafe_allow_html=True)
+
+    # Selectboxes sit visually over the card using negative margin
+    st.markdown("<div style='margin-top:-4.2rem;padding:0 2.2rem 0;'>", unsafe_allow_html=True)
+    col_h, col_mid, col_a = st.columns([10, 2, 10])
+    with col_h:
+        home_team = st.selectbox("Home", teams, key="home_sel", label_visibility="collapsed")
+    with col_mid:
+        st.markdown("<div style='height:3rem'></div>", unsafe_allow_html=True)
+    with col_a:
+        away_opts = [t for t in teams if t != home_team]
+        away_team  = st.selectbox("Away", away_opts, key="away_sel", label_visibility="collapsed")
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    # CTA bar
+    st.markdown("""
+    <div style="margin-top:0.2rem;border-top:1px solid rgba(255,255,255,0.04);padding:1.6rem 0 0.8rem;background:rgba(0,0,0,0.12);border-radius:0 0 20px 20px;">
     """, unsafe_allow_html=True)
 
-    col_l, col_vs, col_r = st.columns([10, 2, 10])
-    with col_l:
-        home_team = st.selectbox("🏠  HOME TEAM", teams, key="home_sel")
-    with col_vs:
-        st.markdown("<div class='vs-badge-pred'>VS</div>", unsafe_allow_html=True)
-    with col_r:
-        away_opts = [t for t in teams if t != home_team]
-        away_team = st.selectbox("✈️  AWAY TEAM", away_opts, key="away_sel")
-
-    st.markdown("<div style='height:1.4rem'></div>", unsafe_allow_html=True)
-
-    # Analyse button — centred inside pred-wrap which constrains its width
-    _, btn_col, _ = st.columns([1, 4, 1])
-    with btn_col:
+    _, btn_c, _ = st.columns([1, 3, 1])
+    with btn_c:
         clicked = st.button("⚡  ANALYSE THIS MATCH", key="pred_btn", use_container_width=True)
+
+    st.markdown("""<div class="cta-meta">AI ensemble · XGBoost + Random Forest · 219 features</div></div>
+    """, unsafe_allow_html=True)
+
+    st.markdown('</div>', unsafe_allow_html=True)  # close match-zone
 
     if clicked:
         with st.spinner('Running ensemble analysis…'):
@@ -658,6 +685,7 @@ elif st.session_state.page == 'predict':
         hf=get_team_form(df,home_team,5); af=get_team_form(df,away_team,5); h2h=get_h2h(df,home_team,away_team,5)
 
         st.markdown('<div class="results-block">', unsafe_allow_html=True)
+
 
         st.markdown(f"""
         <div class="result-hero">
@@ -776,4 +804,4 @@ elif st.session_state.page == 'predict':
 
         st.markdown('</div>', unsafe_allow_html=True)  # close results-block
 
-    st.markdown('</div>', unsafe_allow_html=True)  # close pred-wrap
+    st.markdown('</div>', unsafe_allow_html=True)  # close pred-page
