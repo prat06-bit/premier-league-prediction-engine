@@ -557,7 +557,6 @@ elif st.session_state.page == 'predict':
     /* ── PAGE BODY — centred, max-width constrained ── */
     .pred-body{width:100%;max-width:820px;margin:0 auto;padding:2.2rem 2rem 6rem;box-sizing:border-box;}
 
-    /* ── MATCH HEADER ── */
     .match-kicker{font-family:'DM Mono',monospace;font-size:0.56rem;letter-spacing:0.32em;
       color:rgba(200,255,0,0.6);text-transform:uppercase;margin-bottom:0.9rem;
       display:flex;align-items:center;justify-content:center;gap:12px;}
@@ -567,7 +566,6 @@ elif st.session_state.page == 'predict':
     .match-sub{font-family:'DM Mono',monospace;font-size:0.5rem;letter-spacing:0.2em;
       color:rgba(244,244,245,0.18);text-transform:uppercase;text-align:center;margin-bottom:1.8rem;}
 
-    /* ── PICKER CARD — the frame around dropdowns ── */
     .picker-card{
       background:linear-gradient(145deg,rgba(200,255,0,0.045),rgba(8,10,13,0.98));
       border:1px solid rgba(200,255,0,0.16);border-radius:20px;
@@ -577,14 +575,12 @@ elif st.session_state.page == 'predict':
     }
     .picker-card::before{content:'';position:absolute;top:0;left:12%;right:12%;height:1px;
       background:linear-gradient(90deg,transparent,rgba(200,255,0,0.32),transparent);}
-    /* Labels inside card — shown via Streamlit label, styled via CSS */
     .picker-card .stSelectbox label{
       display:block !important;
       font-family:'DM Mono',monospace !important;font-size:0.5rem !important;
       letter-spacing:0.22em !important;color:rgba(244,244,245,0.32) !important;
       text-transform:uppercase !important;margin-bottom:0.4rem !important;
     }
-    /* Dropdowns inside card */
     .picker-card .stSelectbox > div > div{
       background:rgba(5,6,8,0.7) !important;
       border:1px solid rgba(200,255,0,0.16) !important;border-radius:12px !important;
@@ -596,11 +592,9 @@ elif st.session_state.page == 'predict':
     .picker-card .stSelectbox:focus-within div[data-baseweb="select"]{border-color:rgba(200,255,0,0.65) !important;box-shadow:0 0 0 2px rgba(200,255,0,0.14) !important;}
     .picker-card .stSelectbox svg{fill:rgba(200,255,0,0.45) !important;}
 
-    /* VS badge between columns */
     .vs-badge{font-family:'Anton',sans-serif;font-size:1.2rem;color:rgba(244,244,245,0.1);
       letter-spacing:0.1em;text-align:center;padding-top:1.9rem;}
 
-    /* ── ANALYSE BUTTON ── */
     .pred-body div[data-testid="stButton"]{display:flex !important;justify-content:center !important;margin-top:1.4rem !important;}
     .pred-body .stButton > button{
       background:#C8FF00 !important;color:#050608 !important;border:none !important;
@@ -616,19 +610,16 @@ elif st.session_state.page == 'predict':
       animation:none !important;
     }
 
-    /* Meta + divider */
     .pred-meta{font-family:'DM Mono',monospace;font-size:0.48rem;letter-spacing:0.15em;
       color:rgba(244,244,245,0.14);text-transform:uppercase;text-align:center;margin-top:0.7rem;}
     .pred-divider{height:1px;background:linear-gradient(90deg,transparent,rgba(200,255,0,0.2),transparent);margin:2.5rem 0;}
     .results-block{margin-top:0.5rem;}
     </style>""", unsafe_allow_html=True)
 
-    # ── Nav handler ──────────────────────────────────────────────────────────
     if st.query_params.get("nav") == "landing":
         st.session_state.page = 'landing'; st.session_state.result = None
         st.query_params.clear(); st.rerun()
 
-    # ── Topbar ───────────────────────────────────────────────────────────────
     today = datetime.now().strftime('%A · %d %B %Y').upper()
     st.markdown(f"""
     <div class="pred-topbar">
@@ -642,30 +633,27 @@ elif st.session_state.page == 'predict':
       </div>
     </div>""", unsafe_allow_html=True)
 
-    # ── Page body ─────────────────────────────────────────────────────────────
     st.markdown('<div class="pred-body">', unsafe_allow_html=True)
 
-    # Header
+    
     st.markdown(f"""
       <div class="match-kicker">MATCH SELECTION</div>
       <div class="match-title">WHO'S PLAYING?</div>
       <div class="match-sub">{today} · PREMIER LEAGUE 2024/25</div>
     """, unsafe_allow_html=True)
 
-    # ── Picker card wrapper (CSS only — no HTML widgets inside) ───────────────
     st.markdown('<div class="picker-card">', unsafe_allow_html=True)
     col_h, col_vs, col_a = st.columns([10, 2, 10])
     with col_h:
-        home_team = st.selectbox("🏠 Home Team", teams, key="home_sel")
+        home_team = st.selectbox(" Home Team", teams, key="home_sel")
     with col_vs:
         st.markdown('<div class="vs-badge">VS</div>', unsafe_allow_html=True)
     with col_a:
         away_opts = [t for t in teams if t != home_team]
-        away_team = st.selectbox("✈️ Away Team", away_opts, key="away_sel")
+        away_team = st.selectbox(" Away Team", away_opts, key="away_sel")
     st.markdown('</div>', unsafe_allow_html=True)  # close picker-card
 
-    # ── Analyse button ────────────────────────────────────────────────────────
-    clicked = st.button("⚡  ANALYSE THIS MATCH", key="pred_btn")
+    clicked = st.button("  ANALYSE THIS MATCH", key="pred_btn")
     st.markdown('<div class="pred-meta">AI ensemble · XGBoost + Random Forest · 219 features</div>', unsafe_allow_html=True)
 
     if clicked:
@@ -713,7 +701,7 @@ elif st.session_state.page == 'predict':
         with col1:
             st.markdown(f"""
             <div class="intel-card">
-              <div class="intel-card-kicker">🏠 {home_team.upper()} · RECENT FORM</div>
+              <div class="intel-card-kicker"> {home_team.upper()} · RECENT FORM</div>
               <div class="intel-metrics">
                 <div class="intel-metric"><div class="intel-metric-val">{hs['wins']}</div><div class="intel-metric-lbl">Wins</div></div>
                 <div class="intel-metric"><div class="intel-metric-val">{hs['draws']}</div><div class="intel-metric-lbl">Draws</div></div>
@@ -732,7 +720,7 @@ elif st.session_state.page == 'predict':
         with col2:
             st.markdown(f"""
             <div class="intel-card">
-              <div class="intel-card-kicker">✈️ {away_team.upper()} · RECENT FORM</div>
+              <div class="intel-card-kicker"> {away_team.upper()} · RECENT FORM</div>
               <div class="intel-metrics">
                 <div class="intel-metric"><div class="intel-metric-val">{as_['wins']}</div><div class="intel-metric-lbl">Wins</div></div>
                 <div class="intel-metric"><div class="intel-metric-val">{as_['draws']}</div><div class="intel-metric-lbl">Draws</div></div>
@@ -758,12 +746,12 @@ elif st.session_state.page == 'predict':
         a_exp_cls='good' if exp_away>exp_home else 'bad' if exp_away<exp_home else ''
         st.markdown(f"""
         <div class="extra-insight">
-          <div class="intel-card-kicker">🔭 PROJECTED SCORING BREAKDOWN</div>
+          <div class="intel-card-kicker"> PROJECTED SCORING BREAKDOWN</div>
           <div class="insight-row">
-            <div class="insight-item"><div class="insight-item-label">🏠 {home_team} Avg Scored</div><div class="insight-item-val {h_cls}">{home_avg_scored} per game</div></div>
-            <div class="insight-item"><div class="insight-item-label">✈️ {away_team} Avg Scored</div><div class="insight-item-val {a_cls}">{away_avg_scored} per game</div></div>
-            <div class="insight-item"><div class="insight-item-label">🏠 {home_team} Proj Goals</div><div class="insight-item-val {h_exp_cls}">{exp_home}</div></div>
-            <div class="insight-item"><div class="insight-item-label">✈️ {away_team} Proj Goals</div><div class="insight-item-val {a_exp_cls}">{exp_away}</div></div>
+            <div class="insight-item"><div class="insight-item-label" {home_team} Avg Scored</div><div class="insight-item-val {h_cls}">{home_avg_scored} per game</div></div>
+            <div class="insight-item"><div class="insight-item-label"> {away_team} Avg Scored</div><div class="insight-item-val {a_cls}">{away_avg_scored} per game</div></div>
+            <div class="insight-item"><div class="insight-item-label"> {home_team} Proj Goals</div><div class="insight-item-val {h_exp_cls}">{exp_home}</div></div>
+            <div class="insight-item"><div class="insight-item-label"> {away_team} Proj Goals</div><div class="insight-item-val {a_exp_cls}">{exp_away}</div></div>
           </div>
         </div>""", unsafe_allow_html=True)
 
@@ -771,9 +759,9 @@ elif st.session_state.page == 'predict':
             st.markdown('<div class="section-tag" style="margin-top:0.5rem;">HEAD TO HEAD</div>', unsafe_allow_html=True)
             st.markdown(f"""
             <div class="h2h-card">
-              <div class="intel-card-kicker">⚔️ LAST {len(h2h)} MEETINGS · {home_team.upper()} PERSPECTIVE</div>
+              <div class="intel-card-kicker"> LAST {len(h2h)} MEETINGS · {home_team.upper()} PERSPECTIVE</div>
               {form_html(h2h)}
-              <div class="h2h-stat"><span>📊</span><span>{home_team} won {h2h.count('W')}, drew {h2h.count('D')}, lost {h2h.count('L')} of last {len(h2h)} meetings against {away_team}.</span></div>
+              <div class="h2h-stat"><span></span><span>{home_team} won {h2h.count('W')}, drew {h2h.count('D')}, lost {h2h.count('L')} of last {len(h2h)} meetings against {away_team}.</span></div>
             </div>""", unsafe_allow_html=True)
 
         st.markdown('<div class="section-tag" style="margin-top:0.5rem;">INSIDER INTEL</div>', unsafe_allow_html=True)
@@ -781,11 +769,11 @@ elif st.session_state.page == 'predict':
         notes_html=''.join(f'<div class="notes-item"><span class="note-icon">{ic}</span><span>{tx}</span></div>' for ic,tx in notes)
         st.markdown(f"""
         <div class="notes-card">
-          <div class="intel-card-kicker">🤖 AI ANALYSIS · {home_team.upper()} vs {away_team.upper()}</div>
+          <div class="intel-card-kicker"> AI ANALYSIS · {home_team.upper()} vs {away_team.upper()}</div>
           {notes_html}
         </div>""", unsafe_allow_html=True)
 
-        with st.expander("🔬  MODEL INTERNALS — XGBoost vs Random Forest"):
+        with st.expander("  MODEL INTERNALS — XGBoost vs Random Forest"):
             c1,c2=st.columns(2)
             with c1:
                 st.markdown("**XGBoost (60% weight)**")
@@ -794,6 +782,6 @@ elif st.session_state.page == 'predict':
                 st.markdown("**Random Forest (40% weight)**")
                 for label,p in zip([home_team,'Draw',away_team],res['rf']): st.markdown(f"`{label}` → **{p*100:.1f}%**")
 
-        st.markdown('</div>', unsafe_allow_html=True)  # close results-block
+        st.markdown('</div>', unsafe_allow_html=True)  
 
-    st.markdown('</div>', unsafe_allow_html=True)  # close pred-body
+    st.markdown('</div>', unsafe_allow_html=True)  
