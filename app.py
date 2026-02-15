@@ -17,7 +17,7 @@ components.html("""<script>
       var el=document.querySelector(s); if(el){el.style.setProperty('display','none','important');el.style.setProperty('height','0','important');}
     });
     ['.block-container','.stMainBlockContainer','[data-testid="stAppViewBlockContainer"]',
-     '[data-testid="stVerticalBlock"]','section.main > div'].forEach(function(s){
+     '[data-testid="stVerticalBlock"]','[data-testid="stVerticalBlockBorderWrapper"]','section.main > div'].forEach(function(s){
       document.querySelectorAll(s).forEach(function(el){
         el.style.setProperty('padding-top','0','important');
         el.style.setProperty('padding-bottom','0','important');
@@ -31,7 +31,6 @@ components.html("""<script>
         el.style.setProperty('width','100%','important');
       });
     });
-    // No JS back-button override needed — using HTML overlay approach
   }
   nuke();
   new MutationObserver(nuke).observe(document.documentElement,{childList:true,subtree:true});
@@ -48,6 +47,7 @@ html,body,.stApp{background:var(--void) !important;color:var(--text);font-family
 header[data-testid="stHeader"],[data-testid="stDecoration"],[data-testid="stToolbar"],#MainMenu,footer{display:none !important;height:0 !important;}
 .block-container,.stMainBlockContainer,[data-testid="stAppViewBlockContainer"],section.main>div,div.appview-container section.main>div:first-child{padding-top:0 !important;padding-bottom:0 !important;padding-left:0 !important;padding-right:0 !important;margin-top:0 !important;margin-left:0 !important;margin-right:0 !important;gap:0 !important;max-width:100% !important;width:100% !important;}
 [data-testid="stVerticalBlock"]{gap:0 !important;padding:0 !important;margin:0 !important;}
+[data-testid="stVerticalBlockBorderWrapper"]{gap:0 !important;padding:0 !important;margin:0 !important;}
 iframe{display:none !important;}
 ::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-track{background:var(--void);}::-webkit-scrollbar-thumb{background:var(--acid);border-radius:2px;}
 body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.028'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;mix-blend-mode:overlay;}
@@ -60,8 +60,8 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 .bg-grid{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:-1;pointer-events:none;background-image:linear-gradient(rgba(200,255,0,0.022) 1px,transparent 1px),linear-gradient(90deg,rgba(200,255,0,0.022) 1px,transparent 1px);background-size:80px 80px;mask-image:radial-gradient(ellipse 75% 75% at 50% 50%,black 25%,transparent 100%);}
 
 /* ═══ LANDING ═══ */
-.landing-wrap{width:100vw;max-width:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:5vh 2rem 0;position:relative;z-index:1;box-sizing:border-box;}
-.landing-wrap > *{width:100%;max-width:860px;margin-left:auto;margin-right:auto;}
+.landing-wrap{width:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:5vh 0 0;position:relative;z-index:1;}
+.landing-wrap > div, .landing-wrap > p{width:100%;max-width:860px;margin-left:auto;margin-right:auto;}
 .eyebrow{display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,rgba(200,255,0,0.08),rgba(200,255,0,0.02));border:1px solid rgba(200,255,0,0.2);border-radius:100px;padding:6px 18px 6px 10px;font-family:'DM Mono',monospace;font-size:0.66rem;letter-spacing:0.18em;color:var(--acid);text-transform:uppercase;margin-bottom:2rem;animation:fadeDown 0.6s cubic-bezier(0.16,1,0.3,1) 0.05s both;}
 .eyebrow-pulse{width:7px;height:7px;background:var(--acid);border-radius:50%;animation:pls 1.8s ease-in-out infinite;box-shadow:0 0 8px var(--acid);}
 @keyframes pls{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.3;transform:scale(0.65);}}
@@ -81,23 +81,27 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 .metric-block:nth-child(1) .metric-val{animation-delay:0.55s;}.metric-block:nth-child(2) .metric-val{animation-delay:0.67s;}.metric-block:nth-child(3) .metric-val{animation-delay:0.79s;}.metric-block:nth-child(4) .metric-val{animation-delay:0.91s;}
 @keyframes metricPop{0%{opacity:0;transform:scale(0.55);}65%{transform:scale(1.12);opacity:1;}100%{transform:scale(1);}}
 .metric-lbl{font-family:'DM Mono',monospace;font-size:0.58rem;letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;margin-top:5px;}
-/* ── ALL buttons default: big green acid style ── */
+
+/* ── BUTTONS — guaranteed centered via flex on the wrapper ── */
+/* stButton div becomes a flex container so the child button centres itself */
+div[data-testid="stButton"]{display:flex !important;justify-content:center !important;width:100% !important;}
 .stButton>button{
-  background:var(--acid) !important;color:#050608 !important;border:none !important;
+  background:#C8FF00 !important;color:#050608 !important;border:none !important;
   border-radius:12px !important;font-family:'Anton',sans-serif !important;
-  font-size:1.25rem !important;letter-spacing:0.1em !important;
-  padding:1rem 2.5rem !important;width:100% !important;
+  font-size:1.15rem !important;letter-spacing:0.1em !important;
+  padding:0.95rem 2.5rem !important;
+  width:auto !important;min-width:240px !important;max-width:520px !important;
   transition:all 0.22s cubic-bezier(0.34,1.56,0.64,1) !important;
-  animation:ctaPulse 4s ease-in-out infinite !important;
+  animation:ctaPulse 4s ease-in-out infinite !important;cursor:pointer !important;
 }
 .stButton>button:hover{transform:translateY(-3px) scale(1.02) !important;box-shadow:0 0 50px rgba(200,255,0,0.6),0 8px 30px rgba(200,255,0,0.25) !important;animation:none !important;}
 .stButton>button:active{transform:scale(0.98) !important;}
 @keyframes ctaPulse{0%,100%{box-shadow:0 0 0 rgba(200,255,0,0);}50%{box-shadow:0 0 38px rgba(200,255,0,0.38);}}
-
-/* ── BACK button override — targets by key using data-testid ── */
-/* Streamlit renders: <div data-testid="stButton"><button>← BACK</button></div> */
-/* We target the button whose text starts with ← via the parent having key=back_btn */
-.cta-wrap{margin-top:2.5rem;position:relative;z-index:1;}
+/* Analyse button — slightly smaller */
+.cta-row div[data-testid="stButton"]{padding:0 !important;}
+.cta-row .stButton>button{font-size:1.05rem !important;padding:0.9rem 2.2rem !important;min-width:240px !important;max-width:380px !important;}
+/* CTA wrap on landing */
+.cta-wrap{margin-top:2.5rem;position:relative;z-index:1;width:100%;}
 .sec-header{text-align:center;margin:7rem 0 3.5rem;position:relative;z-index:1;}
 .sec-label{font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.32em;color:var(--acid);text-transform:uppercase;margin-bottom:0.8rem;}
 .sec-title{font-family:'Anton',sans-serif;font-size:clamp(2.5rem,5vw,4rem);letter-spacing:0.01em;color:var(--text);line-height:1;}
@@ -384,11 +388,9 @@ if st.session_state.page == 'landing':
     """, unsafe_allow_html=True)
 
     st.markdown('<div class="cta-wrap">', unsafe_allow_html=True)
-    _, col_c, _ = st.columns([1, 1.4, 1])
-    with col_c:
-        if st.button("⚡  LAUNCH PREDICTION ENGINE", key="cta_btn"):
-            st.session_state.page = 'predict'
-            st.rerun()
+    if st.button("⚡  LAUNCH PREDICTION ENGINE", key="cta_btn"):
+        st.session_state.page = 'predict'
+        st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
     ticker_items = ["3,800+ matches analysed","XGBoost ensemble","10 seasons of EPL data","219 engineered features","Random Forest stacking","Real-time predictions","Head-to-head patterns","Form streak analysis","Goal difference trends","Confidence-scored signals","AI insider insights","Home/Away splits"]
@@ -402,9 +404,9 @@ if st.session_state.page == 'landing':
       <div class="sec-sub">Three steps from selection to prediction</div>
     </div>
     <div class="hiw-grid">
-      <div class="hiw-card"><div class="hiw-num">01</div><div class="hiw-icon"></div><div class="hiw-title">SELECT MATCH</div><div class="hiw-desc">Choose any home and away team from the current EPL roster. KICKIQ covers all 20 Premier League clubs.</div></div>
-      <div class="hiw-card"><div class="hiw-num">02</div><div class="hiw-icon"></div><div class="hiw-title">ENSEMBLE RUNS</div><div class="hiw-desc">XGBoost and Random Forest models process 219 features — form, goal difference, H2H history, home/away splits — weighted 60/40.</div></div>
-      <div class="hiw-card"><div class="hiw-num">03</div><div class="hiw-icon"></div><div class="hiw-title">GET INSIGHTS</div><div class="hiw-desc">Receive outcome probabilities, confidence scoring, team intelligence, H2H analysis, projected goals, and AI-generated insider context.</div></div>
+      <div class="hiw-card"><div class="hiw-num">01</div><div class="hiw-icon">🎯</div><div class="hiw-title">SELECT MATCH</div><div class="hiw-desc">Choose any home and away team from the current EPL roster. KICKIQ covers all 20 Premier League clubs.</div></div>
+      <div class="hiw-card"><div class="hiw-num">02</div><div class="hiw-icon">⚙️</div><div class="hiw-title">ENSEMBLE RUNS</div><div class="hiw-desc">XGBoost and Random Forest models process 219 features — form, goal difference, H2H history, home/away splits — weighted 60/40.</div></div>
+      <div class="hiw-card"><div class="hiw-num">03</div><div class="hiw-icon">📊</div><div class="hiw-title">GET INSIGHTS</div><div class="hiw-desc">Receive outcome probabilities, confidence scoring, team intelligence, H2H analysis, projected goals, and AI-generated insider context.</div></div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -534,81 +536,91 @@ elif st.session_state.page == 'predict':
 
     # ── Predict page CSS ─────────────────────────────────────────────────────
     st.markdown("""<style>
-    /* TOPBAR */
-    .pred-topbar{display:flex;align-items:center;justify-content:space-between;padding:1rem 2.5rem;border-bottom:1px solid rgba(200,255,0,0.07);position:sticky;top:0;z-index:200;background:rgba(5,6,8,0.92);backdrop-filter:blur(28px) saturate(200%);width:100%;animation:topbarDrop 0.4s cubic-bezier(0.16,1,0.3,1) both;}
-    @keyframes topbarDrop{from{opacity:0;transform:translateY(-100%);}to{opacity:1;transform:translateY(0);}}
-    .pred-logo{font-family:'Anton',sans-serif;font-size:1.5rem;letter-spacing:0.04em;color:#F4F4F5;line-height:1;}
-    .pred-logo .iq{color:#C8FF00;text-shadow:0 0 18px rgba(200,255,0,0.45);}
-    .pred-sub{font-family:'DM Mono',monospace;font-size:0.5rem;letter-spacing:0.18em;color:rgba(244,244,245,0.28);text-transform:uppercase;margin-top:3px;display:flex;align-items:center;gap:6px;}
+    /* ── TOPBAR ── */
+    .pred-topbar{display:flex;align-items:center;justify-content:space-between;
+      padding:0.9rem 2.5rem;border-bottom:1px solid rgba(200,255,0,0.08);
+      background:#050608;width:100%;margin:0;box-sizing:border-box;}
+    .pred-logo{font-family:'Anton',sans-serif;font-size:1.45rem;letter-spacing:0.04em;color:#F4F4F5;line-height:1;}
+    .pred-logo .iq{color:#C8FF00;text-shadow:0 0 16px rgba(200,255,0,0.5);}
+    .pred-sub{font-family:'DM Mono',monospace;font-size:0.48rem;letter-spacing:0.18em;color:rgba(244,244,245,0.3);text-transform:uppercase;margin-top:3px;display:flex;align-items:center;gap:6px;}
     .ldot{width:5px;height:5px;background:#C8FF00;border-radius:50%;box-shadow:0 0 7px #C8FF00;animation:pls 1.5s ease-in-out infinite;flex-shrink:0;}
-    .topbar-right{display:flex;align-items:center;gap:1.2rem;}
-    .topbar-tag{font-family:'DM Mono',monospace;font-size:0.5rem;letter-spacing:0.14em;color:rgba(244,244,245,0.14);text-transform:uppercase;}
-    .back-btn-html{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.03);color:rgba(244,244,245,0.42);border:1px solid rgba(255,255,255,0.08);border-radius:7px;font-family:'DM Mono',monospace;font-size:0.56rem;letter-spacing:0.14em;padding:0.34rem 0.85rem;cursor:pointer;user-select:none;transition:all 0.2s ease;white-space:nowrap;text-decoration:none;}
-    .back-btn-html:hover{color:#C8FF00;border-color:rgba(200,255,0,0.28);background:rgba(200,255,0,0.04);}
+    .topbar-right{display:flex;align-items:center;gap:1.4rem;}
+    .topbar-tag{font-family:'DM Mono',monospace;font-size:0.48rem;letter-spacing:0.14em;color:rgba(244,244,245,0.13);text-transform:uppercase;}
+    a.back-link{display:inline-flex !important;align-items:center !important;gap:7px !important;
+      font-family:'DM Mono',monospace !important;font-size:0.72rem !important;
+      letter-spacing:0.12em !important;text-transform:uppercase !important;
+      color:#050608 !important;text-decoration:none !important;background:#C8FF00 !important;
+      border-radius:8px !important;padding:0.45rem 1.2rem !important;
+      font-weight:700 !important;transition:all 0.2s ease !important;white-space:nowrap !important;cursor:pointer !important;}
+    a.back-link:hover{background:#d8ff1a !important;box-shadow:0 0 28px rgba(200,255,0,0.6) !important;transform:translateY(-1px) !important;}
 
-    /* PAGE LAYOUT */
-    .pred-page{width:100%;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:5vh 1.5rem 8rem;}
+    /* ── PAGE BODY — centred, max-width constrained ── */
+    .pred-body{width:100%;max-width:820px;margin:0 auto;padding:2.2rem 2rem 6rem;box-sizing:border-box;}
 
-    /* MATCH SELECTION ZONE */
-    .match-zone{width:100%;max-width:820px;animation:heroUp 0.65s cubic-bezier(0.16,1,0.3,1) 0.05s both;}
+    /* ── MATCH HEADER ── */
+    .match-kicker{font-family:'DM Mono',monospace;font-size:0.56rem;letter-spacing:0.32em;
+      color:rgba(200,255,0,0.6);text-transform:uppercase;margin-bottom:0.9rem;
+      display:flex;align-items:center;justify-content:center;gap:12px;}
+    .match-kicker::before,.match-kicker::after{content:'';width:28px;height:1px;background:rgba(200,255,0,0.3);}
+    .match-title{font-family:'Anton',sans-serif;font-size:clamp(3rem,7vw,5.5rem);
+      letter-spacing:-0.01em;color:#F4F4F5;line-height:0.88;text-align:center;margin-bottom:0.5rem;}
+    .match-sub{font-family:'DM Mono',monospace;font-size:0.5rem;letter-spacing:0.2em;
+      color:rgba(244,244,245,0.18);text-transform:uppercase;text-align:center;margin-bottom:1.8rem;}
 
-    /* Kicker */
-    .match-kicker{font-family:'DM Mono',monospace;font-size:0.58rem;letter-spacing:0.32em;color:rgba(200,255,0,0.55);text-transform:uppercase;margin-bottom:0.9rem;display:flex;align-items:center;justify-content:center;gap:14px;}
-    .match-kicker::before,.match-kicker::after{content:'';width:32px;height:1px;background:rgba(200,255,0,0.25);}
-
-    /* Big title */
-    .match-title{font-family:'Anton',sans-serif;font-size:clamp(2.8rem,6vw,5rem);letter-spacing:-0.01em;color:#F4F4F5;line-height:0.9;text-align:center;margin-bottom:0.5rem;}
-    .match-subtitle{font-family:'DM Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:rgba(244,244,245,0.22);text-transform:uppercase;text-align:center;margin-bottom:3rem;}
-
-    /* VS STRIP — the actual team picker card */
-    .vs-strip{
-      width:100%;border:1px solid rgba(200,255,0,0.12);border-radius:20px;
-      background:linear-gradient(145deg,rgba(200,255,0,0.05) 0%,rgba(10,12,15,0.95) 60%,rgba(0,229,255,0.02) 100%);
-      box-shadow:0 0 80px rgba(200,255,0,0.04),0 40px 100px rgba(0,0,0,0.6);
-      overflow:hidden;position:relative;
+    /* ── PICKER CARD — the frame around dropdowns ── */
+    .picker-card{
+      background:linear-gradient(145deg,rgba(200,255,0,0.045),rgba(8,10,13,0.98));
+      border:1px solid rgba(200,255,0,0.16);border-radius:20px;
+      padding:1.6rem 1.8rem 1.4rem;
+      box-shadow:0 0 60px rgba(200,255,0,0.04),0 20px 60px rgba(0,0,0,0.5);
+      position:relative;overflow:hidden;margin-bottom:0;
     }
-    .vs-strip::before{content:'';position:absolute;top:0;left:12%;right:12%;height:1px;background:linear-gradient(90deg,transparent,rgba(200,255,0,0.3),transparent);}
-    .vs-strip::after{content:'';position:absolute;bottom:0;left:12%;right:12%;height:1px;background:linear-gradient(90deg,transparent,rgba(200,255,0,0.08),transparent);}
+    .picker-card::before{content:'';position:absolute;top:0;left:12%;right:12%;height:1px;
+      background:linear-gradient(90deg,transparent,rgba(200,255,0,0.32),transparent);}
+    /* Labels inside card — shown via Streamlit label, styled via CSS */
+    .picker-card .stSelectbox label{
+      display:block !important;
+      font-family:'DM Mono',monospace !important;font-size:0.5rem !important;
+      letter-spacing:0.22em !important;color:rgba(244,244,245,0.32) !important;
+      text-transform:uppercase !important;margin-bottom:0.4rem !important;
+    }
+    /* Dropdowns inside card */
+    .picker-card .stSelectbox > div > div{
+      background:rgba(5,6,8,0.7) !important;
+      border:1px solid rgba(200,255,0,0.16) !important;border-radius:12px !important;
+      font-family:'Anton',sans-serif !important;font-size:1.2rem !important;
+      color:#F4F4F5 !important;padding:0.7rem 1rem !important;
+      box-shadow:none !important;transition:border-color 0.2s !important;
+    }
+    .picker-card .stSelectbox > div > div:hover{border-color:rgba(200,255,0,0.42) !important;box-shadow:0 0 16px rgba(200,255,0,0.07) !important;}
+    .picker-card .stSelectbox:focus-within div[data-baseweb="select"]{border-color:rgba(200,255,0,0.65) !important;box-shadow:0 0 0 2px rgba(200,255,0,0.14) !important;}
+    .picker-card .stSelectbox svg{fill:rgba(200,255,0,0.45) !important;}
 
-    /* Inner grid: home | divider | away */
-    .vs-inner{display:grid;grid-template-columns:1fr 64px 1fr;min-height:140px;}
-    .team-panel{padding:2rem 2.2rem 1.6rem;display:flex;flex-direction:column;justify-content:flex-start;}
-    .team-panel.home-panel{border-right:1px solid rgba(255,255,255,0.045);}
-    .team-panel.away-panel{border-left:1px solid rgba(255,255,255,0.045);}
-    .tp-label{font-family:'DM Mono',monospace;font-size:0.52rem;letter-spacing:0.22em;color:rgba(244,244,245,0.28);text-transform:uppercase;margin-bottom:0.5rem;}
-    .vs-center{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;background:rgba(200,255,0,0.025);position:relative;}
-    .vs-center::before{content:'';position:absolute;top:0;bottom:0;left:50%;width:1px;background:linear-gradient(to bottom,transparent,rgba(200,255,0,0.12),transparent);}
-    .vs-center-text{font-family:'Anton',sans-serif;font-size:0.95rem;color:rgba(244,244,245,0.06);letter-spacing:0.12em;position:relative;z-index:1;}
+    /* VS badge between columns */
+    .vs-badge{font-family:'Anton',sans-serif;font-size:1.2rem;color:rgba(244,244,245,0.1);
+      letter-spacing:0.1em;text-align:center;padding-top:1.9rem;}
 
-    /* Stacked TEAM NAME in panel */
-    .team-name-display{font-family:'Anton',sans-serif;font-size:1.55rem;letter-spacing:0.02em;color:#F4F4F5;line-height:1;min-height:2rem;}
-
-    /* Selectbox inside panels — ultra-minimal */
-    .team-panel .stSelectbox>div>div{background:transparent !important;border:none !important;border-bottom:2px solid rgba(200,255,0,0.12) !important;border-radius:0 !important;padding:0.1rem 0 0.4rem !important;font-family:'Anton',sans-serif !important;font-size:1.45rem !important;letter-spacing:0.01em !important;color:#F4F4F5 !important;box-shadow:none !important;}
-    .team-panel .stSelectbox>div>div:hover{border-bottom-color:rgba(200,255,0,0.38) !important;}
-    .team-panel .stSelectbox:focus-within div[data-baseweb="select"]{border-bottom-color:rgba(200,255,0,0.7) !important;box-shadow:0 2px 0 rgba(200,255,0,0.22) !important;}
-    .team-panel .stSelectbox label{display:none !important;}
-    .team-panel .stSelectbox svg{color:rgba(200,255,0,0.3) !important;}
-
-    /* CTA bar inside card */
-    .vs-cta-bar{border-top:1px solid rgba(255,255,255,0.04);padding:1.6rem 2rem;background:rgba(0,0,0,0.18);display:flex;flex-direction:column;align-items:center;gap:0.8rem;}
-    .cta-meta{font-family:'DM Mono',monospace;font-size:0.5rem;letter-spacing:0.15em;color:rgba(244,244,245,0.15);text-transform:uppercase;}
-
-    /* Analyse button — tightly scoped to .match-zone */
-    .match-zone .stButton>button{
+    /* ── ANALYSE BUTTON ── */
+    .pred-body div[data-testid="stButton"]{display:flex !important;justify-content:center !important;margin-top:1.4rem !important;}
+    .pred-body .stButton > button{
       background:#C8FF00 !important;color:#050608 !important;border:none !important;
-      border-radius:12px !important;font-family:'Anton',sans-serif !important;
-      font-size:1.1rem !important;letter-spacing:0.1em !important;
-      padding:0.9rem 3.5rem !important;width:auto !important;
-      min-width:280px !important;max-width:420px !important;
-      display:block !important;margin:0 auto !important;
+      border-radius:14px !important;font-family:'Anton',sans-serif !important;
+      font-size:1.05rem !important;letter-spacing:0.1em !important;
+      padding:0.95rem 3rem !important;min-width:260px !important;max-width:420px !important;width:auto !important;
       transition:all 0.22s cubic-bezier(0.34,1.56,0.64,1) !important;
       animation:ctaPulse 4s ease-in-out infinite !important;
     }
-    .match-zone .stButton>button:hover{transform:translateY(-3px) scale(1.03) !important;box-shadow:0 0 55px rgba(200,255,0,0.65),0 12px 40px rgba(200,255,0,0.3) !important;animation:none !important;}
+    .pred-body .stButton > button:hover{
+      transform:translateY(-3px) scale(1.03) !important;
+      box-shadow:0 0 55px rgba(200,255,0,0.65),0 12px 40px rgba(200,255,0,0.3) !important;
+      animation:none !important;
+    }
 
-    /* Results */
-    .results-block{width:100%;max-width:820px;margin-top:2rem;}
+    /* Meta + divider */
+    .pred-meta{font-family:'DM Mono',monospace;font-size:0.48rem;letter-spacing:0.15em;
+      color:rgba(244,244,245,0.14);text-transform:uppercase;text-align:center;margin-top:0.7rem;}
+    .pred-divider{height:1px;background:linear-gradient(90deg,transparent,rgba(200,255,0,0.2),transparent);margin:2.5rem 0;}
+    .results-block{margin-top:0.5rem;}
     </style>""", unsafe_allow_html=True)
 
     # ── Nav handler ──────────────────────────────────────────────────────────
@@ -617,6 +629,7 @@ elif st.session_state.page == 'predict':
         st.query_params.clear(); st.rerun()
 
     # ── Topbar ───────────────────────────────────────────────────────────────
+    today = datetime.now().strftime('%A · %d %B %Y').upper()
     st.markdown(f"""
     <div class="pred-topbar">
       <div>
@@ -624,57 +637,36 @@ elif st.session_state.page == 'predict':
         <div class="pred-sub"><span class="ldot"></span>PREDICTION ENGINE · LIVE</div>
       </div>
       <div class="topbar-right">
-        <div class="topbar-tag">EPL 2024/25</div>
-        <a class="back-btn-html" href="?nav=landing">← BACK</a>
+        <span class="topbar-tag">EPL 2024/25</span>
+        <a class="back-link" onclick="window.location.href=window.location.pathname+'?nav=landing'">← BACK</a>
       </div>
     </div>""", unsafe_allow_html=True)
 
     # ── Page body ─────────────────────────────────────────────────────────────
-    st.markdown('<div class="pred-page">', unsafe_allow_html=True)
-    st.markdown('<div class="match-zone">', unsafe_allow_html=True)
+    st.markdown('<div class="pred-body">', unsafe_allow_html=True)
 
-    today = datetime.now().strftime('%A · %d %B %Y').upper()
+    # Header
     st.markdown(f"""
-    <div class="match-kicker">MATCH SELECTION</div>
-    <div class="match-title">WHO'S PLAYING?</div>
-    <div class="match-subtitle">{today} · PREMIER LEAGUE 2024/25</div>
+      <div class="match-kicker">MATCH SELECTION</div>
+      <div class="match-title">WHO'S PLAYING?</div>
+      <div class="match-sub">{today} · PREMIER LEAGUE 2024/25</div>
     """, unsafe_allow_html=True)
 
-    # VS STRIP — labels in HTML, selects in columns underneath
-    st.markdown("""
-    <div class="vs-strip">
-      <div class="vs-inner">
-        <div class="team-panel home-panel"><div class="tp-label">🏠 Home Team</div></div>
-        <div class="vs-center"><div class="vs-center-text">VS</div></div>
-        <div class="team-panel away-panel"><div class="tp-label">✈️ Away Team</div></div>
-      </div>
-    </div>""", unsafe_allow_html=True)
-
-    # Selectboxes sit visually over the card using negative margin
-    st.markdown("<div style='margin-top:-4.2rem;padding:0 2.2rem 0;'>", unsafe_allow_html=True)
-    col_h, col_mid, col_a = st.columns([10, 2, 10])
+    # ── Picker card wrapper (CSS only — no HTML widgets inside) ───────────────
+    st.markdown('<div class="picker-card">', unsafe_allow_html=True)
+    col_h, col_vs, col_a = st.columns([10, 2, 10])
     with col_h:
-        home_team = st.selectbox("Home", teams, key="home_sel", label_visibility="collapsed")
-    with col_mid:
-        st.markdown("<div style='height:3rem'></div>", unsafe_allow_html=True)
+        home_team = st.selectbox("🏠 Home Team", teams, key="home_sel")
+    with col_vs:
+        st.markdown('<div class="vs-badge">VS</div>', unsafe_allow_html=True)
     with col_a:
         away_opts = [t for t in teams if t != home_team]
-        away_team  = st.selectbox("Away", away_opts, key="away_sel", label_visibility="collapsed")
-    st.markdown("</div>", unsafe_allow_html=True)
+        away_team = st.selectbox("✈️ Away Team", away_opts, key="away_sel")
+    st.markdown('</div>', unsafe_allow_html=True)  # close picker-card
 
-    # CTA bar
-    st.markdown("""
-    <div style="margin-top:0.2rem;border-top:1px solid rgba(255,255,255,0.04);padding:1.6rem 0 0.8rem;background:rgba(0,0,0,0.12);border-radius:0 0 20px 20px;">
-    """, unsafe_allow_html=True)
-
-    _, btn_c, _ = st.columns([1, 3, 1])
-    with btn_c:
-        clicked = st.button("⚡  ANALYSE THIS MATCH", key="pred_btn", use_container_width=True)
-
-    st.markdown("""<div class="cta-meta">AI ensemble · XGBoost + Random Forest · 219 features</div></div>
-    """, unsafe_allow_html=True)
-
-    st.markdown('</div>', unsafe_allow_html=True)  # close match-zone
+    # ── Analyse button ────────────────────────────────────────────────────────
+    clicked = st.button("⚡  ANALYSE THIS MATCH", key="pred_btn")
+    st.markdown('<div class="pred-meta">AI ensemble · XGBoost + Random Forest · 219 features</div>', unsafe_allow_html=True)
 
     if clicked:
         with st.spinner('Running ensemble analysis…'):
@@ -684,8 +676,8 @@ elif st.session_state.page == 'predict':
         res=st.session_state.result; hs=get_team_stats(df,home_team); as_=get_team_stats(df,away_team)
         hf=get_team_form(df,home_team,5); af=get_team_form(df,away_team,5); h2h=get_h2h(df,home_team,away_team,5)
 
+        st.markdown('<div class="pred-divider"></div>', unsafe_allow_html=True)
         st.markdown('<div class="results-block">', unsafe_allow_html=True)
-
 
         st.markdown(f"""
         <div class="result-hero">
@@ -804,4 +796,4 @@ elif st.session_state.page == 'predict':
 
         st.markdown('</div>', unsafe_allow_html=True)  # close results-block
 
-    st.markdown('</div>', unsafe_allow_html=True)  # close pred-page
+    st.markdown('</div>', unsafe_allow_html=True)  # close pred-body
