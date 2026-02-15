@@ -536,124 +536,160 @@ elif st.session_state.page == 'predict':
 
     # ── Predict page CSS ─────────────────────────────────────────────────────
     st.markdown("""<style>
-    /* ── TOPBAR ── */
-    .pred-topbar{display:flex;align-items:center;justify-content:space-between;
-      padding:0.9rem 2.5rem;border-bottom:1px solid rgba(200,255,0,0.08);
-      background:#050608;width:100%;margin:0;box-sizing:border-box;}
+    /* ── TOPBAR — pure HTML ── */
+    .pred-topbar{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:0.7rem 2rem;background:#050608;
+      border-bottom:1px solid rgba(200,255,0,0.08);
+      width:100%;box-sizing:border-box;
+    }
     .pred-logo{font-family:'Anton',sans-serif;font-size:1.45rem;letter-spacing:0.04em;color:#F4F4F5;line-height:1;}
     .pred-logo .iq{color:#C8FF00;text-shadow:0 0 16px rgba(200,255,0,0.5);}
-    .pred-sub{font-family:'DM Mono',monospace;font-size:0.48rem;letter-spacing:0.18em;color:rgba(244,244,245,0.3);text-transform:uppercase;margin-top:3px;display:flex;align-items:center;gap:6px;}
+    .pred-sub{font-family:'DM Mono',monospace;font-size:0.46rem;letter-spacing:0.18em;color:rgba(244,244,245,0.3);text-transform:uppercase;margin-top:3px;display:flex;align-items:center;gap:6px;}
     .ldot{width:5px;height:5px;background:#C8FF00;border-radius:50%;box-shadow:0 0 7px #C8FF00;animation:pls 1.5s ease-in-out infinite;flex-shrink:0;}
-    .topbar-right{display:flex;align-items:center;gap:1.4rem;}
-    .topbar-tag{font-family:'DM Mono',monospace;font-size:0.48rem;letter-spacing:0.14em;color:rgba(244,244,245,0.13);text-transform:uppercase;}
-    a.back-link{display:inline-flex !important;align-items:center !important;gap:7px !important;
-      font-family:'DM Mono',monospace !important;font-size:0.72rem !important;
-      letter-spacing:0.12em !important;text-transform:uppercase !important;
-      color:#050608 !important;text-decoration:none !important;background:#C8FF00 !important;
-      border-radius:8px !important;padding:0.45rem 1.2rem !important;
-      font-weight:700 !important;transition:all 0.2s ease !important;white-space:nowrap !important;cursor:pointer !important;}
-    a.back-link:hover{background:#d8ff1a !important;box-shadow:0 0 28px rgba(200,255,0,0.6) !important;transform:translateY(-1px) !important;}
+    .topbar-right{display:flex;align-items:center;gap:1.2rem;}
+    .topbar-tag{font-family:'DM Mono',monospace;font-size:0.44rem;letter-spacing:0.14em;color:rgba(244,244,245,0.12);text-transform:uppercase;}
 
-    /* ── PAGE BODY — centred, max-width constrained ── */
-    .pred-body{width:100%;max-width:820px;margin:0 auto;padding:2.2rem 2rem 6rem;box-sizing:border-box;}
-
-    .match-kicker{font-family:'DM Mono',monospace;font-size:0.56rem;letter-spacing:0.32em;
-      color:rgba(200,255,0,0.6);text-transform:uppercase;margin-bottom:0.9rem;
-      display:flex;align-items:center;justify-content:center;gap:12px;}
-    .match-kicker::before,.match-kicker::after{content:'';width:28px;height:1px;background:rgba(200,255,0,0.3);}
-    .match-title{font-family:'Anton',sans-serif;font-size:clamp(3rem,7vw,5.5rem);
-      letter-spacing:-0.01em;color:#F4F4F5;line-height:0.88;text-align:center;margin-bottom:0.5rem;}
-    .match-sub{font-family:'DM Mono',monospace;font-size:0.5rem;letter-spacing:0.2em;
-      color:rgba(244,244,245,0.18);text-transform:uppercase;text-align:center;margin-bottom:1.8rem;}
-
-    .picker-card{
-      background:linear-gradient(145deg,rgba(200,255,0,0.045),rgba(8,10,13,0.98));
-      border:1px solid rgba(200,255,0,0.16);border-radius:20px;
-      padding:1.6rem 1.8rem 1.4rem;
-      box-shadow:0 0 60px rgba(200,255,0,0.04),0 20px 60px rgba(0,0,0,0.5);
-      position:relative;overflow:hidden;margin-bottom:0;
+    /* BACK — small acid pill inside topbar HTML */
+    .back-pill{
+      display:inline-flex;align-items:center;gap:6px;
+      background:#C8FF00;color:#050608;
+      font-family:'DM Mono',monospace;font-size:0.64rem;
+      font-weight:700;letter-spacing:0.1em;text-transform:uppercase;
+      border:none;border-radius:7px;padding:0.35rem 0.9rem;
+      cursor:pointer;white-space:nowrap;
+      transition:background 0.15s,box-shadow 0.15s;
     }
-    .picker-card::before{content:'';position:absolute;top:0;left:12%;right:12%;height:1px;
-      background:linear-gradient(90deg,transparent,rgba(200,255,0,0.32),transparent);}
+    .back-pill:hover{background:#d6ff18;box-shadow:0 0 20px rgba(200,255,0,0.5);}
+
+    /* Hide the real st.button that BACK triggers — wrapper with unique ID */
+    #back-btn-hidden{position:fixed !important;top:-9999px !important;left:-9999px !important;
+      width:1px !important;height:1px !important;opacity:0 !important;overflow:hidden !important;}
+
+    /* ── PAGE BODY ── */
+    .pred-body{width:100%;max-width:820px;margin:0 auto;padding:2rem 2rem 6rem;box-sizing:border-box;}
+
+    /* ── MATCH HEADER ── */
+    .match-kicker{font-family:'DM Mono',monospace;font-size:0.55rem;letter-spacing:0.32em;
+      color:rgba(200,255,0,0.6);text-transform:uppercase;margin-bottom:0.6rem;
+      display:flex;align-items:center;justify-content:center;gap:12px;}
+    .match-kicker::before,.match-kicker::after{content:'';width:28px;height:1px;background:rgba(200,255,0,0.28);}
+    .match-title{font-family:'Anton',sans-serif;font-size:clamp(3.5rem,8vw,6.5rem);
+      letter-spacing:-0.01em;color:#F4F4F5;line-height:0.88;text-align:center;margin-bottom:0.35rem;}
+    .match-sub{font-family:'DM Mono',monospace;font-size:0.48rem;letter-spacing:0.2em;
+      color:rgba(244,244,245,0.16);text-transform:uppercase;text-align:center;margin-bottom:1.4rem;}
+
+    /* ── PICKER CARD ── */
+    .picker-card{
+      background:linear-gradient(145deg,rgba(200,255,0,0.04) 0%,rgba(8,10,13,0.98) 100%);
+      border:1px solid rgba(200,255,0,0.15);border-radius:18px;
+      padding:1.4rem 1.6rem 1.2rem;
+      box-shadow:0 0 50px rgba(200,255,0,0.04),0 20px 60px rgba(0,0,0,0.5);
+      position:relative;overflow:hidden;
+    }
+    .picker-card::before{content:'';position:absolute;top:0;left:10%;right:10%;height:1px;
+      background:linear-gradient(90deg,transparent,rgba(200,255,0,0.3),transparent);}
     .picker-card .stSelectbox label{
-      display:block !important;
-      font-family:'DM Mono',monospace !important;font-size:0.5rem !important;
-      letter-spacing:0.22em !important;color:rgba(244,244,245,0.32) !important;
-      text-transform:uppercase !important;margin-bottom:0.4rem !important;
+      display:block !important;font-family:'DM Mono',monospace !important;font-size:0.48rem !important;
+      letter-spacing:0.2em !important;color:rgba(244,244,245,0.28) !important;
+      text-transform:uppercase !important;margin-bottom:0.35rem !important;
     }
     .picker-card .stSelectbox > div > div{
-      background:rgba(5,6,8,0.7) !important;
-      border:1px solid rgba(200,255,0,0.16) !important;border-radius:12px !important;
-      font-family:'Anton',sans-serif !important;font-size:1.2rem !important;
-      color:#F4F4F5 !important;padding:0.7rem 1rem !important;
+      background:rgba(4,5,7,0.8) !important;border:1px solid rgba(200,255,0,0.14) !important;
+      border-radius:10px !important;font-family:'Anton',sans-serif !important;
+      font-size:1.15rem !important;color:#F4F4F5 !important;padding:0.65rem 0.9rem !important;
       box-shadow:none !important;transition:border-color 0.2s !important;
     }
-    .picker-card .stSelectbox > div > div:hover{border-color:rgba(200,255,0,0.42) !important;box-shadow:0 0 16px rgba(200,255,0,0.07) !important;}
-    .picker-card .stSelectbox:focus-within div[data-baseweb="select"]{border-color:rgba(200,255,0,0.65) !important;box-shadow:0 0 0 2px rgba(200,255,0,0.14) !important;}
-    .picker-card .stSelectbox svg{fill:rgba(200,255,0,0.45) !important;}
+    .picker-card .stSelectbox > div > div:hover{border-color:rgba(200,255,0,0.4) !important;}
+    .picker-card .stSelectbox:focus-within div[data-baseweb="select"]{border-color:rgba(200,255,0,0.6) !important;box-shadow:0 0 0 2px rgba(200,255,0,0.12) !important;}
+    .picker-card .stSelectbox svg{fill:rgba(200,255,0,0.4) !important;}
+    .vs-badge{font-family:'Anton',sans-serif;font-size:1rem;color:rgba(244,244,245,0.1);
+      letter-spacing:0.1em;text-align:center;padding-top:1.8rem;}
 
-    .vs-badge{font-family:'Anton',sans-serif;font-size:1.2rem;color:rgba(244,244,245,0.1);
-      letter-spacing:0.1em;text-align:center;padding-top:1.9rem;}
-
-    .pred-body div[data-testid="stButton"]{display:flex !important;justify-content:center !important;margin-top:1.4rem !important;}
-    .pred-body .stButton > button{
-      background:#C8FF00 !important;color:#050608 !important;border:none !important;
-      border-radius:14px !important;font-family:'Anton',sans-serif !important;
-      font-size:1.05rem !important;letter-spacing:0.1em !important;
-      padding:0.95rem 3rem !important;min-width:260px !important;max-width:420px !important;width:auto !important;
-      transition:all 0.22s cubic-bezier(0.34,1.56,0.64,1) !important;
-      animation:ctaPulse 4s ease-in-out infinite !important;
+    /* ── ANALYSE BUTTON — centred, auto-width, overrides global ── */
+    .analyse-wrap{display:flex !important;justify-content:center !important;margin-top:1.2rem !important;}
+    .analyse-wrap div[data-testid="stButton"]{
+      display:flex !important;justify-content:center !important;
+      width:auto !important;min-width:unset !important;max-width:unset !important;
     }
-    .pred-body .stButton > button:hover{
+    .analyse-wrap .stButton>button{
+      background:#C8FF00 !important;color:#050608 !important;border:none !important;
+      border-radius:12px !important;font-family:'Anton',sans-serif !important;
+      font-size:1rem !important;letter-spacing:0.1em !important;
+      padding:0.85rem 2.5rem !important;
+      width:auto !important;min-width:200px !important;max-width:340px !important;
+      animation:ctaPulse 4s ease-in-out infinite !important;
+      transition:all 0.22s cubic-bezier(0.34,1.56,0.64,1) !important;
+    }
+    .analyse-wrap .stButton>button:hover{
       transform:translateY(-3px) scale(1.03) !important;
-      box-shadow:0 0 55px rgba(200,255,0,0.65),0 12px 40px rgba(200,255,0,0.3) !important;
+      box-shadow:0 0 50px rgba(200,255,0,0.6),0 10px 35px rgba(200,255,0,0.28) !important;
       animation:none !important;
     }
 
-    .pred-meta{font-family:'DM Mono',monospace;font-size:0.48rem;letter-spacing:0.15em;
-      color:rgba(244,244,245,0.14);text-transform:uppercase;text-align:center;margin-top:0.7rem;}
-    .pred-divider{height:1px;background:linear-gradient(90deg,transparent,rgba(200,255,0,0.2),transparent);margin:2.5rem 0;}
+    /* Meta */
+    .pred-meta{font-family:'DM Mono',monospace;font-size:0.44rem;letter-spacing:0.15em;
+      color:rgba(244,244,245,0.12);text-transform:uppercase;text-align:center;margin-top:0.6rem;}
+    .pred-divider{height:1px;background:linear-gradient(90deg,transparent,rgba(200,255,0,0.2),transparent);margin:2.2rem 0;}
     .results-block{margin-top:0.5rem;}
     </style>""", unsafe_allow_html=True)
 
+    # ── Nav handler ──────────────────────────────────────────────────────────
     if st.query_params.get("nav") == "landing":
         st.session_state.page = 'landing'; st.session_state.result = None
         st.query_params.clear(); st.rerun()
 
+    # Hidden st.button — JS clicks this; offscreen, invisible, but JS-accessible
+    st.markdown('<div id="back-btn-hidden">', unsafe_allow_html=True)
+    back_clicked = st.button("↩", key="back_btn")
+    st.markdown('</div>', unsafe_allow_html=True)
+    if back_clicked:
+        st.session_state.page = 'landing'; st.session_state.result = None; st.rerun()
+
+    # ── Topbar — pure HTML with inline JS back pill ───────────────────────────
     today = datetime.now().strftime('%A · %d %B %Y').upper()
-    st.markdown(f"""
+    st.markdown("""
     <div class="pred-topbar">
       <div>
         <div class="pred-logo">KICK<span class="iq">IQ</span></div>
-        <div class="pred-sub"><span class="ldot"></span>PREDICTION ENGINE · LIVE</div>
+        <div class="pred-sub"><span class="ldot"></span>PREDICTION ENGINE &middot; LIVE</div>
       </div>
       <div class="topbar-right">
         <span class="topbar-tag">EPL 2024/25</span>
-        <a class="back-link" onclick="window.location.href=window.location.pathname+'?nav=landing'">← BACK</a>
+        <button class="back-pill" onclick="
+          var btns=document.querySelectorAll('button');
+          for(var i=0;i<btns.length;i++){
+            var t=btns[i].innerText||btns[i].textContent;
+            if(t&&t.trim()==='↩'){btns[i].click();break;}
+          }
+        ">&#8592; BACK</button>
       </div>
     </div>""", unsafe_allow_html=True)
 
+    # ── Page body ─────────────────────────────────────────────────────────────
     st.markdown('<div class="pred-body">', unsafe_allow_html=True)
-
-    
     st.markdown(f"""
       <div class="match-kicker">MATCH SELECTION</div>
       <div class="match-title">WHO'S PLAYING?</div>
-      <div class="match-sub">{today} · PREMIER LEAGUE 2024/25</div>
+      <div class="match-sub">{today} &middot; PREMIER LEAGUE 2024/25</div>
     """, unsafe_allow_html=True)
 
+    # ── Picker card ───────────────────────────────────────────────────────────
     st.markdown('<div class="picker-card">', unsafe_allow_html=True)
     col_h, col_vs, col_a = st.columns([10, 2, 10])
     with col_h:
-        home_team = st.selectbox(" Home Team", teams, key="home_sel")
+        home_team = st.selectbox("🏠 Home Team", teams, key="home_sel")
     with col_vs:
         st.markdown('<div class="vs-badge">VS</div>', unsafe_allow_html=True)
     with col_a:
         away_opts = [t for t in teams if t != home_team]
-        away_team = st.selectbox(" Away Team", away_opts, key="away_sel")
+        away_team = st.selectbox("✈️ Away Team", away_opts, key="away_sel")
     st.markdown('</div>', unsafe_allow_html=True)  # close picker-card
 
-    clicked = st.button("  ANALYSE THIS MATCH", key="pred_btn")
+    # ── Analyse button ────────────────────────────────────────────────────────
+    st.markdown('<div class="analyse-wrap">', unsafe_allow_html=True)
+    clicked = st.button("⚡  ANALYSE THIS MATCH", key="pred_btn")
+    st.markdown('</div>', unsafe_allow_html=True)
     st.markdown('<div class="pred-meta">AI ensemble · XGBoost + Random Forest · 219 features</div>', unsafe_allow_html=True)
 
     if clicked:
@@ -701,7 +737,7 @@ elif st.session_state.page == 'predict':
         with col1:
             st.markdown(f"""
             <div class="intel-card">
-              <div class="intel-card-kicker"> {home_team.upper()} · RECENT FORM</div>
+              <div class="intel-card-kicker">🏠 {home_team.upper()} · RECENT FORM</div>
               <div class="intel-metrics">
                 <div class="intel-metric"><div class="intel-metric-val">{hs['wins']}</div><div class="intel-metric-lbl">Wins</div></div>
                 <div class="intel-metric"><div class="intel-metric-val">{hs['draws']}</div><div class="intel-metric-lbl">Draws</div></div>
@@ -720,7 +756,7 @@ elif st.session_state.page == 'predict':
         with col2:
             st.markdown(f"""
             <div class="intel-card">
-              <div class="intel-card-kicker"> {away_team.upper()} · RECENT FORM</div>
+              <div class="intel-card-kicker">✈️ {away_team.upper()} · RECENT FORM</div>
               <div class="intel-metrics">
                 <div class="intel-metric"><div class="intel-metric-val">{as_['wins']}</div><div class="intel-metric-lbl">Wins</div></div>
                 <div class="intel-metric"><div class="intel-metric-val">{as_['draws']}</div><div class="intel-metric-lbl">Draws</div></div>
@@ -746,12 +782,12 @@ elif st.session_state.page == 'predict':
         a_exp_cls='good' if exp_away>exp_home else 'bad' if exp_away<exp_home else ''
         st.markdown(f"""
         <div class="extra-insight">
-          <div class="intel-card-kicker"> PROJECTED SCORING BREAKDOWN</div>
+          <div class="intel-card-kicker">🔭 PROJECTED SCORING BREAKDOWN</div>
           <div class="insight-row">
-            <div class="insight-item"><div class="insight-item-label" {home_team} Avg Scored</div><div class="insight-item-val {h_cls}">{home_avg_scored} per game</div></div>
-            <div class="insight-item"><div class="insight-item-label"> {away_team} Avg Scored</div><div class="insight-item-val {a_cls}">{away_avg_scored} per game</div></div>
-            <div class="insight-item"><div class="insight-item-label"> {home_team} Proj Goals</div><div class="insight-item-val {h_exp_cls}">{exp_home}</div></div>
-            <div class="insight-item"><div class="insight-item-label"> {away_team} Proj Goals</div><div class="insight-item-val {a_exp_cls}">{exp_away}</div></div>
+            <div class="insight-item"><div class="insight-item-label">🏠 {home_team} Avg Scored</div><div class="insight-item-val {h_cls}">{home_avg_scored} per game</div></div>
+            <div class="insight-item"><div class="insight-item-label">✈️ {away_team} Avg Scored</div><div class="insight-item-val {a_cls}">{away_avg_scored} per game</div></div>
+            <div class="insight-item"><div class="insight-item-label">🏠 {home_team} Proj Goals</div><div class="insight-item-val {h_exp_cls}">{exp_home}</div></div>
+            <div class="insight-item"><div class="insight-item-label">✈️ {away_team} Proj Goals</div><div class="insight-item-val {a_exp_cls}">{exp_away}</div></div>
           </div>
         </div>""", unsafe_allow_html=True)
 
@@ -759,9 +795,9 @@ elif st.session_state.page == 'predict':
             st.markdown('<div class="section-tag" style="margin-top:0.5rem;">HEAD TO HEAD</div>', unsafe_allow_html=True)
             st.markdown(f"""
             <div class="h2h-card">
-              <div class="intel-card-kicker"> LAST {len(h2h)} MEETINGS · {home_team.upper()} PERSPECTIVE</div>
+              <div class="intel-card-kicker">⚔️ LAST {len(h2h)} MEETINGS · {home_team.upper()} PERSPECTIVE</div>
               {form_html(h2h)}
-              <div class="h2h-stat"><span></span><span>{home_team} won {h2h.count('W')}, drew {h2h.count('D')}, lost {h2h.count('L')} of last {len(h2h)} meetings against {away_team}.</span></div>
+              <div class="h2h-stat"><span>📊</span><span>{home_team} won {h2h.count('W')}, drew {h2h.count('D')}, lost {h2h.count('L')} of last {len(h2h)} meetings against {away_team}.</span></div>
             </div>""", unsafe_allow_html=True)
 
         st.markdown('<div class="section-tag" style="margin-top:0.5rem;">INSIDER INTEL</div>', unsafe_allow_html=True)
@@ -769,11 +805,11 @@ elif st.session_state.page == 'predict':
         notes_html=''.join(f'<div class="notes-item"><span class="note-icon">{ic}</span><span>{tx}</span></div>' for ic,tx in notes)
         st.markdown(f"""
         <div class="notes-card">
-          <div class="intel-card-kicker"> AI ANALYSIS · {home_team.upper()} vs {away_team.upper()}</div>
+          <div class="intel-card-kicker">🤖 AI ANALYSIS · {home_team.upper()} vs {away_team.upper()}</div>
           {notes_html}
         </div>""", unsafe_allow_html=True)
 
-        with st.expander("  MODEL INTERNALS — XGBoost vs Random Forest"):
+        with st.expander("🔬  MODEL INTERNALS — XGBoost vs Random Forest"):
             c1,c2=st.columns(2)
             with c1:
                 st.markdown("**XGBoost (60% weight)**")
@@ -782,6 +818,6 @@ elif st.session_state.page == 'predict':
                 st.markdown("**Random Forest (40% weight)**")
                 for label,p in zip([home_team,'Draw',away_team],res['rf']): st.markdown(f"`{label}` → **{p*100:.1f}%**")
 
-        st.markdown('</div>', unsafe_allow_html=True)  
+        st.markdown('</div>', unsafe_allow_html=True)  # close results-block
 
-    st.markdown('</div>', unsafe_allow_html=True)  
+    st.markdown('</div>', unsafe_allow_html=True)  # close pred-body
