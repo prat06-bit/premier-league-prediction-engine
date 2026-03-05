@@ -13,10 +13,21 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
+# ── FONT LOADING ──────────────────────────────────────────────────────────────
+# Must be a separate st.markdown call BEFORE the <style> block.
+# On Streamlit Cloud, @import inside injected CSS is unreliable because the
+# browser may parse the <style> before the @import URL finishes loading.
+# <link rel="stylesheet"> loads fonts in parallel before any CSS is applied.
+st.markdown("""
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Mono:wght@300;400;500&family=Rajdhani:wght@300;400;500;600;700&family=Saira+Condensed:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+""", unsafe_allow_html=True)
+
 # ── GLOBAL CSS ────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Anton&family=DM+Mono:wght@300;400;500&family=Rajdhani:wght@300;400;500;600;700&family=Saira+Condensed:wght@200;300;400;500;600;700;800;900&display=swap');
+/* Fonts loaded via <link> tags above — @import removed for Cloud reliability */
 
 *,*::before,*::after{box-sizing:border-box;}
 :root{
@@ -42,12 +53,14 @@ section.main > div,div.appview-container section.main > div:first-child{
 [data-testid="stVerticalBlock"],[data-testid="stVerticalBlockBorderWrapper"]{gap:0 !important;padding:0 !important;margin:0 !important;}
 
 /* ── GLOBAL BUTTON BASE ── */
-div[data-testid="stButton"]{display:flex !important;justify-content:center !important;}
+div[data-testid="stButton"]{display:flex !important;justify-content:center !important;width:100% !important;}
 div[data-testid="stButton"] > button{
   background:var(--acid) !important;color:var(--void) !important;border:none !important;
   border-radius:12px !important;font-family:'Anton',sans-serif !important;
   font-size:1.1rem !important;letter-spacing:0.1em !important;
   padding:0.95rem 2.5rem !important;min-width:220px !important;width:auto !important;
+  /* margin:0 auto ensures self-centering even when flex parent misbehaves on Cloud */
+  margin:0 auto !important;
   cursor:pointer !important;transition:all 0.22s cubic-bezier(0.34,1.56,0.64,1) !important;
   animation:ctaPulse 4s ease-in-out infinite !important;}
 div[data-testid="stButton"] > button:hover{
@@ -56,63 +69,79 @@ div[data-testid="stButton"] > button:hover{
   animation:none !important;}
 div[data-testid="stButton"] > button:active{transform:scale(0.98) !important;}
 
-/* ── BACK BUTTON — nuclear fix ──
-   Target the [data-testid="column"] element Streamlit renders for the
-   first nav column, shrink it to content width, then kill button min-width. ── */
-.kiq-nav-row [data-testid="stHorizontalBlock"] [data-testid="column"]:first-child {
+/* ── BACK BUTTON ─────────────────────────────────────────────────────────────
+   ROOT CAUSE FIX: st.markdown('<div class="kiq-nav-back">') renders as an empty
+   sibling element in the DOM — NOT as a parent of st.button(). So the old
+   ".kiq-nav-back div[stButton]" selector never matched.
+   FIX: :has() looks DOWN into descendants of the column's stVerticalBlock,
+   finding the .kiq-nav-back marker and scoping all overrides to that block. ── */
+
+/* Shrink the column stVerticalBlock that hosts the back button */
+[data-testid="stVerticalBlock"]:has(.kiq-nav-back),
+[data-testid="stVerticalBlock"]:has(.kiq-nav-back) [data-testid="stVerticalBlockBorderWrapper"] {
   flex: 0 0 auto !important;
   width: auto !important;
   min-width: 0 !important;
-  padding: 0 !important;
 }
-.kiq-nav-back,
-.kiq-nav-back [data-testid="stVerticalBlock"],
-.kiq-nav-back [data-testid="stVerticalBlockBorderWrapper"] {
-  width: auto !important;
-  min-width: 0 !important;
-  flex: 0 0 auto !important;
-}
-.kiq-nav-back div[data-testid="stButton"] {
+/* Override the global button container inside the back-button column */
+[data-testid="stVerticalBlock"]:has(.kiq-nav-back) [data-testid="stButton"] {
   justify-content: flex-start !important;
   width: auto !important;
   min-width: 0 !important;
 }
-.kiq-nav-back div[data-testid="stButton"] > button {
+/* Override the actual button element — kill global min-width and padding */
+[data-testid="stVerticalBlock"]:has(.kiq-nav-back) [data-testid="stButton"] > button {
   background: var(--acid) !important;
   color: var(--void) !important;
   font-family: 'DM Mono', monospace !important;
   font-size: 0.62rem !important;
   font-weight: 700 !important;
   letter-spacing: 0.08em !important;
-  padding: 0.3rem 0.7rem !important;
+  padding: 0.3rem 0.8rem !important;
   border-radius: 6px !important;
-  /* Kill the global min-width completely */
   min-width: 0 !important;
   width: auto !important;
-  max-width: 100px !important;
+  max-width: 110px !important;
+  margin: 0 !important;           /* cancel global margin:0 auto for this button */
   animation: none !important;
   white-space: nowrap !important;
   line-height: 1.5 !important;
 }
-.kiq-nav-back div[data-testid="stButton"] > button:hover {
+[data-testid="stVerticalBlock"]:has(.kiq-nav-back) [data-testid="stButton"] > button:hover {
   transform: translateY(-1px) !important;
   box-shadow: 0 0 16px rgba(200,255,0,0.4) !important;
 }
 
-/* ── NAVBAR ── */
-.kiq-nav-row{
-  display:flex !important;align-items:center !important;
-  width:100% !important;min-height:62px !important;
-  padding:0 1.5rem !important;
-  background:rgba(5,6,8,0.97) !important;
-  border-bottom:1px solid rgba(200,255,0,0.08) !important;
-  position:sticky !important;top:0 !important;z-index:300 !important;
-  box-sizing:border-box !important;overflow:visible !important;}
-.kiq-nav-row [data-testid="stHorizontalBlock"]{
-  width:100% !important;gap:0 !important;align-items:center !important;}
-/* First column (back button column) — shrink to content */
-.kiq-nav-row [data-testid="stHorizontalBlock"] > div:first-child{
-  flex:0 0 auto !important;min-width:0 !important;width:auto !important;padding-right:0 !important;}
+/* ── NAVBAR ──────────────────────────────────────────────────────────────────
+   ROOT CAUSE FIX: .kiq-nav-row is an empty sibling div, NOT a wrapper of the
+   stHorizontalBlock. The old ".kiq-nav-row [data-testid='stHorizontalBlock']"
+   rule had ZERO matching elements in the live DOM.
+   
+   FIX 1 (header cropping): Hide .kiq-nav-row so the empty auto-closed div
+   doesn't consume layout space and crop the nav bar.
+   FIX 2 (sticky nav): Use adjacent-sibling combinator (+) to target the
+   stHorizontalBlock that immediately follows the element-container holding
+   the .kiq-nav-row marker. This is a direct sibling relationship in the
+   Streamlit stVerticalBlock, so it always matches correctly. ── */
+
+/* Hide the empty marker — removes phantom height causing header cropping */
+.kiq-nav-row { display: none !important; }
+
+/* Style the actual nav stHorizontalBlock via adjacent-sibling after marker */
+[data-testid="element-container"]:has(.kiq-nav-row) + [data-testid="stHorizontalBlock"] {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 300 !important;
+  background: rgba(5,6,8,0.97) !important;
+  border-bottom: 1px solid rgba(200,255,0,0.08) !important;
+  min-height: 62px !important;
+  padding: 0 1.5rem !important;
+  box-sizing: border-box !important;
+  align-items: center !important;
+  width: 100% !important;
+  gap: 0 !important;
+  overflow: visible !important;
+}
 
 /* ── ORBS & GRID ── */
 .orb-container{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
@@ -237,26 +266,40 @@ div[data-testid="stButton"] > button:active{transform:scale(0.98) !important;}
   border-color:rgba(200,255,0,0.45) !important;}
 
 /* NUCLEAR FIX: make every text node inside the selectbox widget visible.
-   Streamlit/BaseWeb buries the selected value in nested divs/spans — 
-   targeting * catches all of them regardless of BaseWeb version. */
+   ROOT CAUSE on Cloud: -webkit-text-fill-color can be set transparent by some
+   Chromium/BaseWeb versions, overriding the color property entirely.
+   FIX: Set BOTH color AND -webkit-text-fill-color on every possible text node. */
 .stSelectbox [data-baseweb="select"] * {
   color: #F4F4F5 !important;
-  font-family: 'Anton', sans-serif !important;
+  -webkit-text-fill-color: #F4F4F5 !important;
+  opacity: 1 !important;
+}
+/* Specifically target the selected value slots used in BaseWeb */
+.stSelectbox [data-baseweb="select"] [data-baseweb="value"],
+.stSelectbox [data-baseweb="select"] [data-baseweb="value"] *,
+.stSelectbox [data-baseweb="select"] [data-baseweb="singleValue"],
+.stSelectbox [data-baseweb="select"] [class*="singleValue"],
+.stSelectbox [data-baseweb="select"] span {
+  color: #F4F4F5 !important;
+  -webkit-text-fill-color: #F4F4F5 !important;
+  opacity: 1 !important;
 }
 /* Keep the dropdown arrow its acid colour, not white */
 .stSelectbox [data-baseweb="select"] svg {
   fill: rgba(200,255,0,0.5) !important;
   color: rgba(200,255,0,0.5) !important;
 }
-/* Dim placeholder text */
+/* Dim placeholder text — keep -webkit-text-fill-color consistent */
 .stSelectbox [data-baseweb="select"] [data-baseweb="placeholder"],
 .stSelectbox [data-baseweb="select"] input::placeholder {
   color: rgba(244,244,245,0.25) !important;
+  -webkit-text-fill-color: rgba(244,244,245,0.25) !important;
 }
 /* Dropdown list items */
 ul[data-baseweb="menu"] li,
 ul[data-baseweb="menu"] li * {
   color: #F4F4F5 !important;
+  -webkit-text-fill-color: #F4F4F5 !important;
   background: #0A0C0F !important;
   font-family: 'Rajdhani', sans-serif !important;
 }
@@ -264,6 +307,7 @@ ul[data-baseweb="menu"] li:hover,
 ul[data-baseweb="menu"] li:hover * {
   background: rgba(200,255,0,0.08) !important;
   color: #C8FF00 !important;
+  -webkit-text-fill-color: #C8FF00 !important;
 }
 
 .vs-badge{font-family:'Anton',sans-serif;font-size:0.95rem;color:rgba(244,244,245,0.12);letter-spacing:0.1em;text-align:center;padding-top:1.9rem;}
