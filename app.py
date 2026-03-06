@@ -265,26 +265,25 @@ div[data-testid="stButton"] > button:active{transform:scale(0.98) !important;}
 [data-testid="stHorizontalBlock"]:has([data-testid="stSelectbox"]) .stSelectbox > div > div:hover{
   border-color:rgba(200,255,0,0.45) !important;}
 
-/* NUCLEAR FIX: make every text node inside the selectbox widget visible.
-   ROOT CAUSE on Cloud: -webkit-text-fill-color can be set transparent by some
-   Chromium/BaseWeb versions, overriding the color property entirely.
-   FIX: Set BOTH color AND -webkit-text-fill-color on every possible text node. */
-.stSelectbox [data-baseweb="select"] * {
-  color: #F4F4F5 !important;
-  -webkit-text-fill-color: #F4F4F5 !important;
-  opacity: 1 !important;
-}
-/* Specifically target the selected value slots used in BaseWeb */
+/* ── SELECTBOX TEXT — belt-and-suspenders fallback ───────────────────────────
+   PRIMARY FIX: .streamlit/config.toml sets textColor=#F4F4F5 which BaseWeb
+   reads at render time — this makes every widget text correct automatically.
+   The rules below are fallbacks in case config.toml is not picked up yet. ── */
+
+/* Value container — the div that holds the selected text */
 .stSelectbox [data-baseweb="select"] [data-baseweb="value"],
-.stSelectbox [data-baseweb="select"] [data-baseweb="value"] *,
-.stSelectbox [data-baseweb="select"] [data-baseweb="singleValue"],
-.stSelectbox [data-baseweb="select"] [class*="singleValue"],
-.stSelectbox [data-baseweb="select"] span {
-  color: #F4F4F5 !important;
-  -webkit-text-fill-color: #F4F4F5 !important;
+.stSelectbox [data-baseweb="select"] [data-baseweb="value"] div,
+.stSelectbox [data-baseweb="select"] [data-baseweb="value"] span {
+  color: var(--text) !important;
+  -webkit-text-fill-color: var(--text) !important;
   opacity: 1 !important;
 }
-/* Keep the dropdown arrow its acid colour, not white */
+/* Placeholder text */
+.stSelectbox [data-baseweb="select"] [data-baseweb="placeholder"] {
+  color: var(--muted) !important;
+  -webkit-text-fill-color: var(--muted) !important;
+}
+/* Keep the dropdown arrow acid-colored */
 .stSelectbox [data-baseweb="select"] svg {
   fill: rgba(200,255,0,0.5) !important;
   color: rgba(200,255,0,0.5) !important;
@@ -298,16 +297,14 @@ div[data-testid="stButton"] > button:active{transform:scale(0.98) !important;}
 /* Dropdown list items */
 ul[data-baseweb="menu"] li,
 ul[data-baseweb="menu"] li * {
-  color: #F4F4F5 !important;
-  -webkit-text-fill-color: #F4F4F5 !important;
+  color: var(--text) !important;
   background: #0A0C0F !important;
   font-family: 'Rajdhani', sans-serif !important;
 }
 ul[data-baseweb="menu"] li:hover,
 ul[data-baseweb="menu"] li:hover * {
   background: rgba(200,255,0,0.08) !important;
-  color: #C8FF00 !important;
-  -webkit-text-fill-color: #C8FF00 !important;
+  color: var(--acid) !important;
 }
 
 .vs-badge{font-family:'Anton',sans-serif;font-size:0.95rem;color:rgba(244,244,245,0.12);letter-spacing:0.1em;text-align:center;padding-top:1.9rem;}
@@ -408,6 +405,17 @@ ul[data-baseweb="menu"] li:hover * {
 .streamlit-expanderHeader{font-family:'DM Mono',monospace !important;font-size:0.66rem !important;letter-spacing:0.15em !important;color:var(--muted) !important;background:var(--surface) !important;border:1px solid var(--border) !important;border-radius:10px !important;}
 .streamlit-expanderContent{background:var(--surface) !important;border:1px solid var(--border) !important;border-top:none !important;}
 
+/* Button using use_container_width=True — fills column without clipping */
+div[data-testid="stButton"] > button[kind="primary"],
+div[data-testid="stButton"] > button {
+  display: block !important;
+  text-align: center !important;
+}
+/* Ensure button columns are never overflow:hidden */
+[data-testid="column"] {
+  overflow: visible !important;
+}
+
 @keyframes ctaPulse{0%,100%{box-shadow:0 0 0 rgba(200,255,0,0);}50%{box-shadow:0 0 38px rgba(200,255,0,0.38);}}
 
 @media(max-width:768px){
@@ -427,15 +435,127 @@ ul[data-baseweb="menu"] li:hover * {
 
 
 # ── DATA & MODEL LOADING ──────────────────────────────────────────────────────
+import warnings
+import sklearn
+import xgboost
+
+def _get_env_versions() -> dict:
+    """Return a dict of the currently installed library versions."""
+    return {
+        "sklearn":  sklearn.__version__,
+        "xgboost":  xgboost.__version__,
+        "python":   f"{__import__('sys').version_info.major}.{__import__('sys').version_info.minor}",
+    }
+
+def _parse_version(v: str) -> tuple:
+    """Convert '1.6.1' → (1, 6, 1) for numeric comparison."""
+    try:
+        return tuple(int(x) for x in str(v).split(".")[:3])
+    except Exception:
+        return (0, 0, 0)
+
 @st.cache_resource
 def load_models():
+    """
+    Production-safe model loader.
+
+    Strategy
+    --------
+    * Suppress the noisy-but-harmless InconsistentVersionWarning that sklearn
+      emits when the pkl was created with a *newer* minor version than the
+      installed one (e.g. trained on 1.8.0, running on 1.6.1).
+    * Log the version delta so it is always visible in Streamlit Cloud logs.
+    * Hard-fail only on a MAJOR version mismatch (1.x vs 2.x) — that is the
+      only scenario where the internal object format genuinely breaks.
+    * For XGBoost, warn but continue: XGBoost's own booster handles cross-
+      version pkl gracefully unless the major version changes.
+    """
+    env = _get_env_versions()
+
     try:
-        xgb = joblib.load('models/tuned/xgboost_tuned.pkl')
-        rf  = joblib.load('models/tuned/random_forest_tuned.pkl')
-        fc  = joblib.load('models/tuned/feature_columns.pkl')
-        return xgb, rf, fc, True
+        # ── Suppress minor-version warnings so they don't appear in the UI ──
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore",
+                category=UserWarning,          # XGBoost serialization warning
+                message=".*older version.*",
+            )
+            warnings.filterwarnings(
+                "ignore",
+                category=sklearn.exceptions.InconsistentVersionWarning,
+            )
+
+            xgb_model = joblib.load('models/tuned/xgboost_tuned.pkl')
+            rf_model  = joblib.load('models/tuned/random_forest_tuned.pkl')
+            fc        = joblib.load('models/tuned/feature_columns.pkl')
+
+        # ── Version delta check: sklearn ──────────────────────────────────
+        # sklearn embeds __getstate__ metadata on every estimator.
+        # A safe way to read the train-time version without re-serialising:
+        train_sklearn = None
+        try:
+            # RandomForest is a sklearn object — check its embedded version tag
+            train_sklearn = getattr(rf_model, "_sklearn_version", None)
+        except Exception:
+            pass
+
+        if train_sklearn:
+            env_major  = _parse_version(env["sklearn"])[0]
+            train_major = _parse_version(train_sklearn)[0]
+            # Log version info to the Cloud console (visible in logs, not in UI)
+            print(
+                f"[KickIQ] sklearn  — trained:{train_sklearn}  "
+                f"running:{env['sklearn']}  "
+                f"{'⚠ MINOR DELTA' if train_sklearn != env['sklearn'] else '✓ MATCH'}"
+            )
+            if train_major != env_major:
+                st.error(
+                    f"⛔ sklearn MAJOR version mismatch: models trained on "
+                    f"v{train_sklearn}, running v{env['sklearn']}. "
+                    f"Re-train models with the current version or pin "
+                    f"`scikit-learn=={env['sklearn']}` in requirements.txt."
+                )
+                return None, None, None, False
+        else:
+            print(
+                f"[KickIQ] sklearn  — train-time version unknown  "
+                f"running:{env['sklearn']}"
+            )
+
+        # ── Version delta check: xgboost ──────────────────────────────────
+        print(
+            f"[KickIQ] xgboost  — running:{env['xgboost']} "
+            f"(train-time version not embedded in pkl)"
+        )
+
+        # ── Quick smoke-test: can the models actually predict? ─────────────
+        try:
+            n_features = len(fc)
+            dummy = pd.DataFrame(
+                [[0] * n_features], columns=fc
+            )
+            xgb_model.predict_proba(dummy)
+            rf_model.predict_proba(dummy)
+        except Exception as smoke_err:
+            st.error(
+                f"⛔ Model smoke-test failed: {smoke_err}. "
+                f"The models are likely incompatible with the current library "
+                f"versions. Re-train and re-save the models."
+            )
+            return None, None, None, False
+
+        print(f"[KickIQ] Models loaded and smoke-tested ✓  env={env}")
+        return xgb_model, rf_model, fc, True
+
+    except FileNotFoundError as e:
+        st.error(
+            f"Model file not found: {e}. "
+            f"Run `python src/train_models.py` to generate model files, "
+            f"then commit them to the repo."
+        )
+        return None, None, None, False
     except Exception as e:
-        st.error(f"Model load error: {e}")
+        st.error(f"Unexpected model load error: {e}")
         return None, None, None, False
 
 @st.cache_data
@@ -638,12 +758,15 @@ if st.session_state.page == 'landing':
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div style="margin:2.5rem 0;position:relative;z-index:1;">', unsafe_allow_html=True)
-    if st.button("LAUNCH PREDICTION ENGINE", key="cta_btn"):
-        st.session_state.page = 'predict'
-        st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
-
+    st.markdown('<div style="margin-top:2.5rem;"></div>', unsafe_allow_html=True)
+    # Real column — the only reliable centering mechanism on Streamlit Cloud.
+    # st.markdown('<div>') is NOT a DOM parent of adjacent st.button() calls;
+    # only st.columns() creates a real containing element for the button.
+    _cta_l, _cta_m, _cta_r = st.columns([2, 3, 2])
+    with _cta_m:
+        if st.button("LAUNCH PREDICTION ENGINE", key="cta_btn", use_container_width=True):
+            st.session_state.page = 'predict'
+            st.rerun()
     ticker_items = ["3,800+ matches analysed","XGBoost ensemble","10 seasons of EPL data","219 engineered features",
                     "Random Forest stacking","Real-time predictions","Head-to-head patterns","Form streak analysis",
                     "Goal difference trends","Confidence-scored signals","AI insider insights","Home/Away splits",
@@ -837,9 +960,11 @@ elif st.session_state.page == 'predict':
         away_opts = [t for t in teams if t != home_team]
         away_team = st.selectbox("Away Team", away_opts, key="away_sel")
 
-    _l, _m, _r = st.columns([2, 3, 2])
+    # [3,4,3] gives the center column 40% of available width.
+    # use_container_width fills it cleanly without any overflow clipping.
+    _l, _m, _r = st.columns([3, 4, 3])
     with _m:
-        clicked = st.button("ANALYSE THIS MATCH", key="pred_btn")
+        clicked = st.button("ANALYSE THIS MATCH", key="pred_btn", use_container_width=True)
 
     st.markdown(
         '<div class="pred-meta">AI ENSEMBLE · XGBOOST + RANDOM FOREST · 219 FEATURES · POISSON SCORE MODEL</div>',

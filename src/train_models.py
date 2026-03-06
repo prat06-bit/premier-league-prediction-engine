@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, log_loss
+from elo_features import compute_elo
 import xgboost as xgb
 from sklearn.ensemble import RandomForestClassifier
 import matplotlib.pyplot as plt
@@ -28,6 +29,7 @@ def load_and_split_data(filepath: str, test_size: float = 0.2):
     print("="*80)
     
     df = pd.read_csv(filepath)
+    df = compute_elo(df)
     df['Date'] = pd.to_datetime(df['Date'])
     df = df.sort_values('Date').reset_index(drop=True)
     

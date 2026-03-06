@@ -1,0 +1,10 @@
+
+# .streamlit/ directory at the root of your repository.
+
+[theme]
+base                  = "dark"
+backgroundColor       = "#050608"
+secondaryBackgroundColor = "#0A0C0F"
+textColor             = "#F4F4F5"
+primaryColor          = "#C8FF00"
+font                  = "sans serif"

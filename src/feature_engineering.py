@@ -2,6 +2,45 @@ import pandas as pd
 import numpy as np
 from typing import List
 
+def compute_elo_ratings(df, k=20, base_rating=1500):
+    df = df.copy().sort_values("Date")
+
+    ratings = {}
+
+    home_elo = []
+    away_elo = []
+    elo_diff = []
+
+    for _, row in df.iterrows():
+        home = row["HomeTeam"]
+        away = row["AwayTeam"]
+
+        home_rating = ratings.get(home, base_rating)
+        away_rating = ratings.get(away, base_rating)
+
+        home_elo.append(home_rating)
+        away_elo.append(away_rating)
+        elo_diff.append(home_rating - away_rating)
+
+        expected_home = 1 / (1 + 10 ** ((away_rating - home_rating) / 400))
+        expected_away = 1 - expected_home
+
+        if row["FTR"] == "H":
+            actual_home, actual_away = 1, 0
+        elif row["FTR"] == "A":
+            actual_home, actual_away = 0, 1
+        else:
+            actual_home = actual_away = 0.5
+
+        ratings[home] = home_rating + k * (actual_home - expected_home)
+        ratings[away] = away_rating + k * (actual_away - expected_away)
+
+    df["home_elo"] = home_elo
+    df["away_elo"] = away_elo
+    df["elo_diff"] = elo_diff
+
+    return df
+
 def load_and_prepare_data(filepath: str) -> pd.DataFrame:
     df = pd.read_csv(filepath)
     df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
@@ -278,9 +317,13 @@ def create_differential_features(features: pd.DataFrame) -> pd.DataFrame:
     )
     
     features["defense_trend_diff"] = (
-        features["goals_against_trend_5_away"] - features["goals_against_trend_5_home"]
+    features["goals_against_trend_5_away"] - features["goals_against_trend_5_home"]
     )
-    
+
+    features["elo_advantage"] = (
+    features["home_elo"] - features["away_elo"]
+    )
+
     return features
 
 def main():
@@ -291,10 +334,13 @@ def main():
     print("\n Loading data")
     df = load_and_prepare_data("data/merged_matches.csv")
     print(f" Loaded {len(df)} matches")
+
+    print("Computing Elo ratings")
+    df = compute_elo_ratings(df)
     
     print("Creating match outcomes")
     df = create_match_outcomes(df)
-    
+
     print("Converting to team perspective")
     team_df = create_team_perspective_df(df)
     print(f"Created {len(team_df)} team-match records")
