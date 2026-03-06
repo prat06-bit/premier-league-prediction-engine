@@ -182,25 +182,18 @@ def train_random_forest(X_train, y_train, X_test, y_test):
     
     return model, test_preds, test_proba, test_acc
 
-def create_ensemble(xgb_proba, rf_proba, y_test):
+def create_ensemble(xgb_proba, rf_proba, y_test, weights=[0.6, 0.4]):
     print("\n" + "="*80)
     print("STEP 4: CREATING ENSEMBLE MODEL")
     print("="*80)
-
-    xgb_weight = 0.75
-    rf_weight = 0.25
-
-    ensemble_proba = (
-        xgb_weight * xgb_proba +
-        rf_weight * rf_proba
-    )
-
+    
+    ensemble_proba = (weights[0] * xgb_proba + weights[1] * rf_proba)
     ensemble_pred = np.argmax(ensemble_proba, axis=1)
-
+    
     accuracy = accuracy_score(y_test, ensemble_pred)
-
+    
     print(f"\nEnsemble Accuracy: {accuracy:.4f} ({accuracy*100:.2f}%)")
-
+    
     return ensemble_pred, ensemble_proba, accuracy
 
 def print_detailed_metrics(y_test, y_pred, model_name):
