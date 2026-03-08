@@ -71,6 +71,14 @@ def create_team_perspective_df(df: pd.DataFrame) -> pd.DataFrame:
     away["is_home"] = 0
 
     team_df = pd.concat([home, away], ignore_index=True).sort_values(["Team", "Date"]).reset_index(drop=True)
+    team_df["season_points"] = (
+    team_df.groupby("Team")["Points"]
+    .cumsum()
+)
+    team_df["league_rank"] = (
+    team_df.groupby("Date")["season_points"]
+    .rank(ascending=False, method="first")
+)
     return team_df
 
 def create_rolling_features(team_df: pd.DataFrame, windows: List[int] = [3, 5, 10]) -> pd.DataFrame:
