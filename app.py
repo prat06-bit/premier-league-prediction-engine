@@ -422,13 +422,12 @@ div[data-testid="stButton"] > button {
 """, unsafe_allow_html=True)
 
 
-# ── DATA & MODEL LOADING ──────────────────────────────────────────────────────
+#  DATA & MODEL LOADING 
 import warnings
 import sklearn
 import xgboost
 
 def _get_env_versions() -> dict:
-    """Return a dict of the currently installed library versions."""
     return {
         "sklearn":  sklearn.__version__,
         "xgboost":  xgboost.__version__,
@@ -436,7 +435,6 @@ def _get_env_versions() -> dict:
     }
 
 def _parse_version(v: str) -> tuple:
-    """Convert '1.6.1' → (1, 6, 1) for numeric comparison."""
     try:
         return tuple(int(x) for x in str(v).split(".")[:3])
     except Exception:
@@ -444,28 +442,14 @@ def _parse_version(v: str) -> tuple:
 
 @st.cache_resource
 def load_models():
-    """
-    Production-safe model loader.
-
-    Strategy
-    --------
-    * Suppress the noisy-but-harmless InconsistentVersionWarning that sklearn
-      emits when the pkl was created with a *newer* minor version than the
-      installed one (e.g. trained on 1.8.0, running on 1.6.1).
-    * Log the version delta so it is always visible in Streamlit Cloud logs.
-    * Hard-fail only on a MAJOR version mismatch (1.x vs 2.x) — that is the
-      only scenario where the internal object format genuinely breaks.
-    * For XGBoost, warn but continue: XGBoost's own booster handles cross-
-      version pkl gracefully unless the major version changes.
-    """
     env = _get_env_versions()
 
     try:
-        # ── Suppress minor-version warnings so they don't appear in the UI ──
+        #  Suppress minor-version warnings 
         with warnings.catch_warnings():
             warnings.filterwarnings(
                 "ignore",
-                category=UserWarning,          # XGBoost serialization warning
+                category=UserWarning,         
                 message=".*older version.*",
             )
             warnings.filterwarnings(
@@ -477,9 +461,7 @@ def load_models():
             rf_model  = joblib.load('models/tuned/random_forest_tuned.pkl')
             fc        = joblib.load('models/tuned/feature_columns.pkl')
 
-        # ── Version delta check: sklearn ──────────────────────────────────
-        # sklearn embeds __getstate__ metadata on every estimator.
-        # A safe way to read the train-time version without re-serialising:
+        #  Version delta check: sklearn 
         train_sklearn = None
         try:
             # RandomForest is a sklearn object — check its embedded version tag
@@ -490,7 +472,6 @@ def load_models():
         if train_sklearn:
             env_major  = _parse_version(env["sklearn"])[0]
             train_major = _parse_version(train_sklearn)[0]
-            # Log version info to the Cloud console (visible in logs, not in UI)
             print(
                 f"[KickIQ] sklearn  — trained:{train_sklearn}  "
                 f"running:{env['sklearn']}  "
@@ -498,7 +479,7 @@ def load_models():
             )
             if train_major != env_major:
                 st.error(
-                    f"⛔ sklearn MAJOR version mismatch: models trained on "
+                    f" sklearn MAJOR version mismatch: models trained on "
                     f"v{train_sklearn}, running v{env['sklearn']}. "
                     f"Re-train models with the current version or pin "
                     f"`scikit-learn=={env['sklearn']}` in requirements.txt."
@@ -510,13 +491,11 @@ def load_models():
                 f"running:{env['sklearn']}"
             )
 
-        # ── Version delta check: xgboost ──────────────────────────────────
+        #  Version delta check: xgboost 
         print(
             f"[KickIQ] xgboost  — running:{env['xgboost']} "
             f"(train-time version not embedded in pkl)"
         )
-
-        # ── Quick smoke-test: can the models actually predict? ─────────────
         try:
             n_features = len(fc)
             dummy = pd.DataFrame(
@@ -526,7 +505,7 @@ def load_models():
             rf_model.predict_proba(dummy)
         except Exception as smoke_err:
             st.error(
-                f"⛔ Model smoke-test failed: {smoke_err}. "
+                f" Model smoke-test failed: {smoke_err}. "
                 f"The models are likely incompatible with the current library "
                 f"versions. Re-train and re-save the models."
             )
@@ -557,7 +536,7 @@ def load_data():
         return None, None, False
 
 
-# ── HELPER FUNCTIONS ──────────────────────────────────────────────────────────
+#  HELPER FUNCTIONS 
 def get_team_form(df, team, n=5):
     home = df[df['HomeTeam']==team][['Date','FTR']].copy()
     home['result'] = home['FTR'].map({'H':'W','D':'D','A':'L'})
@@ -630,7 +609,6 @@ def get_score_probs(exp_h, exp_a, max_g=5):
         for j in range(max_g+1):
             matrix[(i,j)] = poisson_prob(exp_h, i) * poisson_prob(exp_a, j)
     total = sum(matrix.values())
-    # normalise to visible range only
     matrix = {k: v/total for k, v in matrix.items()}
 
     sorted_scores = sorted(matrix.items(), key=lambda x: -x[1])[:5]
@@ -710,7 +688,7 @@ def insider_notes(home, away, res, hs, as_, h2h):
     return notes
 
 
-# ── SESSION STATE ─────────────────────────────────────────────────────────────
+#  SESSION STATE 
 if 'page'   not in st.session_state: st.session_state.page   = 'landing'
 if 'result' not in st.session_state: st.session_state.result = None
 
@@ -726,9 +704,7 @@ xgb_model, rf_model, feature_cols, models_ok = load_models()
 df, teams, data_ok = load_data()
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
 # LANDING PAGE
-# ═══════════════════════════════════════════════════════════════════════════════
 if st.session_state.page == 'landing':
     st.markdown('<div class="landing-wrap">', unsafe_allow_html=True)
 
@@ -747,9 +723,6 @@ if st.session_state.page == 'landing':
     """, unsafe_allow_html=True)
 
     st.markdown('<div style="margin-top:2.5rem;"></div>', unsafe_allow_html=True)
-    # Real column — the only reliable centering mechanism on Streamlit Cloud.
-    # st.markdown('<div>') is NOT a DOM parent of adjacent st.button() calls;
-    # only st.columns() creates a real containing element for the button.
     _cta_l, _cta_m, _cta_r = st.columns([2, 3, 2])
     with _cta_m:
         if st.button("LAUNCH PREDICTION ENGINE", key="cta_btn", use_container_width=True):
@@ -881,16 +854,14 @@ if st.session_state.page == 'landing':
     st.markdown('</div>', unsafe_allow_html=True)
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
 # PREDICT PAGE
-# ═══════════════════════════════════════════════════════════════════════════════
 elif st.session_state.page == 'predict':
 
     if not models_ok or not data_ok:
         st.error("Run `python src/train_models.py` first to generate model files.")
         st.stop()
 
-    # ── NAVBAR ────────────────────────────────────────────────────────────────
+    #  NAVBAR 
     st.markdown('<div class="kiq-nav-row">', unsafe_allow_html=True)
     col_back, col_logo, col_tag = st.columns([1, 8, 1])
 
@@ -925,7 +896,7 @@ elif st.session_state.page == 'predict':
 
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # ── HERO ──────────────────────────────────────────────────────────────────
+    #  HERO 
     today = datetime.now().strftime('%A · %d %B %Y').upper()
     st.markdown(f"""
     <div class="kiq-hero">
@@ -935,8 +906,7 @@ elif st.session_state.page == 'predict':
     </div>
     """, unsafe_allow_html=True)
 
-    # ── PICKER  ───────────────────────────────────────────────────────────────
-    # CSS :has([data-testid="stSelectbox"]) targets this horizontal block directly
+    #  PICKER  
     st.markdown('<div style="padding:0 2rem;">', unsafe_allow_html=True)
     col_h, col_vs, col_a = st.columns([10, 2, 10])
 
@@ -948,8 +918,6 @@ elif st.session_state.page == 'predict':
         away_opts = [t for t in teams if t != home_team]
         away_team = st.selectbox("Away Team", away_opts, key="away_sel")
 
-    # [3,4,3] gives the center column 40% of available width.
-    # use_container_width fills it cleanly without any overflow clipping.
     _l, _m, _r = st.columns([3, 4, 3])
     with _m:
         clicked = st.button("ANALYSE THIS MATCH", key="pred_btn", use_container_width=True)
@@ -964,7 +932,7 @@ elif st.session_state.page == 'predict':
             st.session_state.result = run_prediction(
                 home_team, away_team, xgb_model, rf_model, df, feature_cols)
 
-    # ── RESULTS ───────────────────────────────────────────────────────────────
+    #  RESULTS 
     if st.session_state.result:
         res = st.session_state.result
         hs  = get_team_stats(df, home_team)
@@ -989,7 +957,7 @@ elif st.session_state.page == 'predict':
         st.markdown('<div class="pred-divider"></div>', unsafe_allow_html=True)
         st.markdown('<div style="padding:0 2rem 6rem;">', unsafe_allow_html=True)
 
-        # ── RESULT HERO ───────────────────────────────────────────────────────
+        #  RESULT HERO 
         st.markdown(f"""
         <div class="result-hero">
           <div class="result-eyebrow">{home_team.upper()} vs {away_team.upper()} · {datetime.now().strftime('%d %B %Y').upper()}</div>
@@ -999,7 +967,7 @@ elif st.session_state.page == 'predict':
           <div class="disclaimer-txt">FOR ENTERTAINMENT ONLY · NOT FINANCIAL ADVICE · BET RESPONSIBLY</div>
         </div>""", unsafe_allow_html=True)
 
-        # ── PROBABILITY BREAKDOWN ─────────────────────────────────────────────
+        #  PROBABILITY BREAKDOWN 
         st.markdown('<div class="section-tag" style="margin-top:2rem;">PROBABILITY BREAKDOWN</div>', unsafe_allow_html=True)
         ha = "active" if res['outcome']=='Home Win' else ""
         da = "active" if res['outcome']=='Draw' else ""
@@ -1044,7 +1012,7 @@ elif st.session_state.page == 'predict':
             bargap=0.38)
         st.plotly_chart(fig, use_container_width=True, config={'displayModeBar':False})
 
-        # ── BETTING LINES (Poisson) ────────────────────────────────────────────
+        #  BETTING LINES (Poisson) 
         st.markdown('<div class="line-sep"></div>', unsafe_allow_html=True)
         st.markdown('<div class="section-tag">MARKET PROXIES · POISSON MODEL</div>', unsafe_allow_html=True)
 
@@ -1074,7 +1042,7 @@ elif st.session_state.page == 'predict':
               <div class="intel-metric-lbl" style="margin-top:6px;">probability</div>
             </div>""", unsafe_allow_html=True)
 
-        # ── SCORELINE PREDICTIONS ──────────────────────────────────────────────
+        #  SCORELINE PREDICTIONS 
         st.markdown('<div class="section-tag" style="margin-top:1.5rem;">TOP SCORELINE PREDICTIONS · POISSON</div>', unsafe_allow_html=True)
         scores_html = ''.join(
             f'<div class="scoreline-cell {"top" if i==0 else ""}">'
@@ -1091,7 +1059,7 @@ elif st.session_state.page == 'predict':
           <div class="scoreline-grid">{scores_html}</div>
         </div>""", unsafe_allow_html=True)
 
-        # ── TEAM INTELLIGENCE ─────────────────────────────────────────────────
+        #  TEAM INTELLIGENCE 
         st.markdown('<div class="line-sep"></div>', unsafe_allow_html=True)
         st.markdown('<div class="section-tag">TEAM INTELLIGENCE</div>', unsafe_allow_html=True)
 
@@ -1178,7 +1146,7 @@ elif st.session_state.page == 'predict':
               {streak_html(a_streak)}
             </div>""", unsafe_allow_html=True)
 
-        # ── PROJECTED GOALS ────────────────────────────────────────────────────
+        #  PROJECTED GOALS 
         st.markdown('<div class="section-tag" style="margin-top:1.5rem;">PROJECTED SCORING</div>', unsafe_allow_html=True)
         h_cls = 'good' if home_avg_scored>away_avg_scored else ''
         a_cls = 'good' if away_avg_scored>home_avg_scored else ''
@@ -1215,7 +1183,7 @@ elif st.session_state.page == 'predict':
           </div>
         </div>""", unsafe_allow_html=True)
 
-        # ── HEAD TO HEAD ───────────────────────────────────────────────────────
+        #  HEAD TO HEAD 
         if h2h:
             st.markdown('<div class="section-tag" style="margin-top:0.5rem;">HEAD TO HEAD</div>', unsafe_allow_html=True)
             st.markdown(f"""
@@ -1227,7 +1195,7 @@ elif st.session_state.page == 'predict':
               </div>
             </div>""", unsafe_allow_html=True)
 
-        # ── INSIDER INTEL ──────────────────────────────────────────────────────
+        #  INSIDER INTEL 
         st.markdown('<div class="section-tag" style="margin-top:0.5rem;">INSIDER INTEL</div>', unsafe_allow_html=True)
         notes = insider_notes(home_team, away_team, res, hs, as_, h2h)
         notes_html = ''.join(
@@ -1238,7 +1206,7 @@ elif st.session_state.page == 'predict':
           {notes_html}
         </div>""", unsafe_allow_html=True)
 
-        # ── MODEL INTERNALS ────────────────────────────────────────────────────
+        #  MODEL INTERNALS 
         with st.expander("MODEL INTERNALS — XGBoost vs Random Forest"):
             c1, c2, c3 = st.columns(3)
             with c1:
