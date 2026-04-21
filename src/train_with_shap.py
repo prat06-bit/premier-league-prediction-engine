@@ -12,7 +12,6 @@ warnings.filterwarnings('ignore')
 plt.style.use('seaborn-v0_8-darkgrid')
 
 def sanitize_feature_names(feature_cols):
-    """ Feature names for XGBoost compatibility"""
     sanitized = []
     for col in feature_cols:
         clean_name = col.replace('[', '_').replace(']', '_').replace('<', '_lt_').replace('>', '_gt_')
@@ -20,7 +19,6 @@ def sanitize_feature_names(feature_cols):
     return sanitized
 
 def load_data(filepath: str = "data/features.csv"):
-    """Load and prepare data for SHAP analysis"""
     print("\n" + "="*80)
     print("LOADING DATA FOR SHAP ANALYSIS")
     print("="*80)
@@ -96,7 +94,6 @@ def train_model_for_shap(X, y):
     return model
 
 def generate_shap_summary(model, X, feature_cols, class_names=['Home Win', 'Draw', 'Away Win']):
-    """Generate SHAP summary plots for all classes"""
     print("\n" + "="*80)
     print("GENERATING SHAP VALUES")
     print("="*80)
@@ -148,9 +145,9 @@ def generate_shap_summary(model, X, feature_cols, class_names=['Home Win', 'Draw
             plt.savefig(f'models/shap_analysis/shap_summary_{class_name.lower().replace(" ", "_")}.png', 
                        dpi=300, bbox_inches='tight')
             plt.close()
-            print(f"  ✓ Summary plot saved")
+            print(f" Summary plot saved")
         except Exception as e:
-            print(f"  ⚠ Summary plot failed: {e}")
+            print(f" Summary plot failed: {e}")
         
         try:
             plt.figure(figsize=(12, 10))
@@ -167,11 +164,11 @@ def generate_shap_summary(model, X, feature_cols, class_names=['Home Win', 'Draw
             plt.savefig(f'models/shap_analysis/shap_bar_{class_name.lower().replace(" ", "_")}.png', 
                        dpi=300, bbox_inches='tight')
             plt.close()
-            print(f"  ✓ Bar plot saved")
+            print(f" Bar plot saved")
         except Exception as e:
-            print(f"  ⚠ Bar plot failed: {e}")
+            print(f" Bar plot failed: {e}")
     
-    print(f"\nGenerating combined feature importance...")
+    print(f"\nGenerating combined feature importance")
     
     try:
         mean_abs_shap = np.zeros(X_sample.shape[1])
@@ -197,7 +194,6 @@ def generate_shap_summary(model, X, feature_cols, class_names=['Home Win', 'Draw
     return shap_values_list, X_sample
 
 def print_feature_insights(shap_values, X_sample, feature_cols, top_n=10):
-    """Print insights about top features"""
     print("\n" + "="*80)
     print("TOP FEATURE INSIGHTS")
     print("="*80)
