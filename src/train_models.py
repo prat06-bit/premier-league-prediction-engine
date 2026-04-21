@@ -23,7 +23,6 @@ def sanitize_feature_names(feature_cols):
     return sanitized
 
 def load_and_split_data(filepath: str, test_size: float = 0.2):
-    """Load features and split by time (crucial for sports betting!)"""
     print("\n" + "="*80)
     print("STEP 1: LOADING AND SPLITTING DATA")
     print("="*80)
@@ -146,7 +145,6 @@ def train_xgboost(X_train, y_train, X_test, y_test):
     return model, test_preds, test_proba, test_acc
 
 def train_random_forest(X_train, y_train, X_test, y_test):
-    """Train Random Forest classifier"""
     print("\n" + "="*80)
     print("STEP 3: TRAINING RANDOM FOREST MODEL")
     print("="*80)
