@@ -13,18 +13,13 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# ── FONT LOADING ──────────────────────────────────────────────────────────────
-# Must be a separate st.markdown call BEFORE the <style> block.
-# On Streamlit Cloud, @import inside injected CSS is unreliable because the
-# browser may parse the <style> before the @import URL finishes loading.
-# <link rel="stylesheet"> loads fonts in parallel before any CSS is applied.
 st.markdown("""
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Mono:wght@300;400;500&family=Rajdhani:wght@300;400;500;600;700&family=Saira+Condensed:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 """, unsafe_allow_html=True)
 
-# ── GLOBAL CSS ────────────────────────────────────────────────────────────────
+#  GLOBAL CSS 
 st.markdown("""
 <style>
 /* Fonts loaded via <link> tags above — @import removed for Cloud reliability */
@@ -52,14 +47,13 @@ section.main > div,div.appview-container section.main > div:first-child{
   max-width:100% !important;width:100% !important;}
 [data-testid="stVerticalBlock"],[data-testid="stVerticalBlockBorderWrapper"]{gap:0 !important;padding:0 !important;margin:0 !important;}
 
-/* ── GLOBAL BUTTON BASE ── */
+/*  GLOBAL BUTTON BASE  */
 div[data-testid="stButton"]{display:flex !important;justify-content:center !important;width:100% !important;}
 div[data-testid="stButton"] > button{
   background:var(--acid) !important;color:var(--void) !important;border:none !important;
   border-radius:12px !important;font-family:'Anton',sans-serif !important;
   font-size:1.1rem !important;letter-spacing:0.1em !important;
   padding:0.95rem 2.5rem !important;min-width:220px !important;width:auto !important;
-  /* margin:0 auto ensures self-centering even when flex parent misbehaves on Cloud */
   margin:0 auto !important;
   cursor:pointer !important;transition:all 0.22s cubic-bezier(0.34,1.56,0.64,1) !important;
   animation:ctaPulse 4s ease-in-out infinite !important;}
@@ -69,27 +63,24 @@ div[data-testid="stButton"] > button:hover{
   animation:none !important;}
 div[data-testid="stButton"] > button:active{transform:scale(0.98) !important;}
 
-/* ── BACK BUTTON ─────────────────────────────────────────────────────────────
+/*  BACK BUTTON 
    ROOT CAUSE FIX: st.markdown('<div class="kiq-nav-back">') renders as an empty
    sibling element in the DOM — NOT as a parent of st.button(). So the old
    ".kiq-nav-back div[stButton]" selector never matched.
    FIX: :has() looks DOWN into descendants of the column's stVerticalBlock,
-   finding the .kiq-nav-back marker and scoping all overrides to that block. ── */
+   finding the .kiq-nav-back marker and scoping all overrides to that block.  */
 
-/* Shrink the column stVerticalBlock that hosts the back button */
 [data-testid="stVerticalBlock"]:has(.kiq-nav-back),
 [data-testid="stVerticalBlock"]:has(.kiq-nav-back) [data-testid="stVerticalBlockBorderWrapper"] {
   flex: 0 0 auto !important;
   width: auto !important;
   min-width: 0 !important;
 }
-/* Override the global button container inside the back-button column */
 [data-testid="stVerticalBlock"]:has(.kiq-nav-back) [data-testid="stButton"] {
   justify-content: flex-start !important;
   width: auto !important;
   min-width: 0 !important;
 }
-/* Override the actual button element — kill global min-width and padding */
 [data-testid="stVerticalBlock"]:has(.kiq-nav-back) [data-testid="stButton"] > button {
   background: var(--acid) !important;
   color: var(--void) !important;
@@ -102,7 +93,7 @@ div[data-testid="stButton"] > button:active{transform:scale(0.98) !important;}
   min-width: 0 !important;
   width: auto !important;
   max-width: 110px !important;
-  margin: 0 !important;           /* cancel global margin:0 auto for this button */
+  margin: 0 !important;           
   animation: none !important;
   white-space: nowrap !important;
   line-height: 1.5 !important;
@@ -112,7 +103,7 @@ div[data-testid="stButton"] > button:active{transform:scale(0.98) !important;}
   box-shadow: 0 0 16px rgba(200,255,0,0.4) !important;
 }
 
-/* ── NAVBAR ──────────────────────────────────────────────────────────────────
+/*  NAVBAR 
    ROOT CAUSE FIX: .kiq-nav-row is an empty sibling div, NOT a wrapper of the
    stHorizontalBlock. The old ".kiq-nav-row [data-testid='stHorizontalBlock']"
    rule had ZERO matching elements in the live DOM.
@@ -122,12 +113,10 @@ div[data-testid="stButton"] > button:active{transform:scale(0.98) !important;}
    FIX 2 (sticky nav): Use adjacent-sibling combinator (+) to target the
    stHorizontalBlock that immediately follows the element-container holding
    the .kiq-nav-row marker. This is a direct sibling relationship in the
-   Streamlit stVerticalBlock, so it always matches correctly. ── */
+   Streamlit stVerticalBlock, so it always matches correctly.  */
 
-/* Hide the empty marker — removes phantom height causing header cropping */
 .kiq-nav-row { display: none !important; }
 
-/* Style the actual nav stHorizontalBlock via adjacent-sibling after marker */
 [data-testid="element-container"]:has(.kiq-nav-row) + [data-testid="stHorizontalBlock"] {
   position: sticky !important;
   top: 0 !important;
@@ -143,7 +132,7 @@ div[data-testid="stButton"] > button:active{transform:scale(0.98) !important;}
   overflow: visible !important;
 }
 
-/* ── ORBS & GRID ── */
+/*  ORBS & GRID  */
 .orb-container{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
 .orb{position:absolute;border-radius:50%;filter:blur(90px);animation:orbFloat var(--dur,22s) ease-in-out infinite;}
 .orb-1{width:600px;height:600px;top:-15%;left:-10%;background:radial-gradient(circle,rgba(200,255,0,0.1) 0%,transparent 70%);--dur:20s;}
@@ -155,7 +144,7 @@ div[data-testid="stButton"] > button:active{transform:scale(0.98) !important;}
   background-size:80px 80px;
   mask-image:radial-gradient(ellipse 75% 75% at 50% 50%,black 25%,transparent 100%);}
 
-/* ── LANDING ── */
+/*  LANDING  */
 .landing-wrap{width:100%;display:flex;flex-direction:column;align-items:center;padding:5vh 1rem 0;position:relative;z-index:1;}
 .eyebrow{display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,rgba(200,255,0,0.08),rgba(200,255,0,0.02));border:1px solid rgba(200,255,0,0.2);border-radius:100px;padding:6px 18px 6px 10px;font-family:'DM Mono',monospace;font-size:0.66rem;letter-spacing:0.18em;color:var(--acid);text-transform:uppercase;margin-bottom:2rem;animation:fadeDown 0.6s cubic-bezier(0.16,1,0.3,1) 0.05s both;}
 .eyebrow-pulse{width:7px;height:7px;background:var(--acid);border-radius:50%;animation:pls 1.8s ease-in-out infinite;box-shadow:0 0 8px var(--acid);}
@@ -228,15 +217,14 @@ div[data-testid="stButton"] > button:active{transform:scale(0.98) !important;}
 .faq-q::before{content:'';width:4px;height:1.1rem;background:var(--acid);border-radius:2px;flex-shrink:0;}
 .faq-a{font-family:'Rajdhani',sans-serif;font-size:0.95rem;font-weight:400;color:var(--muted);line-height:1.65;padding-left:14px;}
 
-/* ── PREDICT PAGE ── */
+/*  PREDICT PAGE  */
 .kiq-hero{width:100%;text-align:center;padding:2.5rem 1rem 1.2rem;position:relative;z-index:1;}
 .match-kicker{font-family:'DM Mono',monospace;font-size:0.55rem;letter-spacing:0.32em;color:rgba(200,255,0,0.6);text-transform:uppercase;margin-bottom:0.6rem;display:flex;align-items:center;justify-content:center;gap:12px;}
 .match-kicker::before,.match-kicker::after{content:'';width:28px;height:1px;background:rgba(200,255,0,0.28);}
 .match-title{font-family:'Anton',sans-serif;font-size:clamp(3rem,8vw,6.5rem);letter-spacing:-0.01em;color:#F4F4F5;line-height:0.88;text-align:center;margin-bottom:0.35rem;}
 .match-sub{font-family:'DM Mono',monospace;font-size:0.48rem;letter-spacing:0.2em;color:rgba(244,244,245,0.16);text-transform:uppercase;text-align:center;margin-bottom:1.4rem;}
 
-/* ── PICKER CARD via :has() — targets the real Streamlit stHorizontalBlock
-   that contains selectboxes, no HTML wrapper div needed ── */
+/*  PICKER CARD  */
 [data-testid="stHorizontalBlock"]:has([data-testid="stSelectbox"]) {
   background:linear-gradient(145deg,rgba(200,255,0,0.04) 0%,rgba(8,10,13,0.98) 100%) !important;
   border:1px solid rgba(200,255,0,0.18) !important;
